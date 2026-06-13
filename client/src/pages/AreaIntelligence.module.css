@@ -1,0 +1,71 @@
+.page {}
+.grid { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
+
+/* Leaderboard */
+.leaderCard {}
+.leaderHeader { margin-bottom: 16px; }
+.panelTitle { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.panelSub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+.table { width: 100%; border-collapse: collapse; }
+.table th { text-align: left; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); padding: 0 14px 10px 0; border-bottom: 1px solid var(--border); }
+.thRank { width: 56px; }
+.table td { font-size: 12px; color: var(--text-primary); padding: 10px 14px 10px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.row { cursor: pointer; }
+.row:hover { background: var(--bg-hover); }
+.row:last-child td { border-bottom: none; }
+.rowSelected { background: rgba(59,130,246,0.06) !important; }
+.rankCell { }
+.rankBadge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: var(--font-mono); background: var(--bg-hover); color: var(--text-muted); border: 1px solid var(--border); }
+.rankTop { background: rgba(234,179,8,0.12); color: #eab308; border-color: rgba(234,179,8,0.3); }
+.thanaCell { font-weight: 500; }
+.monoCell { font-family: var(--font-mono); font-weight: 600; color: var(--text-secondary); }
+.noneText { font-size: 12px; color: var(--text-muted); }
+
+/* Infra score bar in table */
+.scoreWrap { display: flex; align-items: center; gap: 8px; min-width: 100px; }
+.scoreTrack { flex: 1; height: 4px; background: var(--bg-hover); border-radius: 2px; overflow: hidden; }
+.scoreFill { height: 100%; border-radius: 2px; }
+.scoreNum { font-size: 12px; font-weight: 700; font-family: var(--font-mono); min-width: 24px; }
+
+/* Detail column */
+.detailCol { display: flex; flex-direction: column; gap: 12px; }
+.detailCard {}
+.detailHeader { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.detailThana { font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+.detailSub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* Meta grid */
+.metaGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.metaBox { background: var(--bg-hover); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; }
+.metaLabel { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 4px; }
+.metaValue { font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; }
+
+/* Infra score */
+.infraSection { margin-bottom: 14px; }
+.infraLabelRow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.infraNum { font-size: 13px; font-weight: 700; font-family: var(--font-mono); }
+.infraTrack { height: 6px; background: var(--bg-hover); border-radius: 3px; overflow: hidden; }
+.infraFill { height: 100%; border-radius: 3px; }
+.infraScale { display: flex; justify-content: space-between; margin-top: 5px; }
+.infraScale span { font-size: 10px; color: var(--text-muted); }
+
+/* Category breakdown */
+.sectionDivider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+.sectionLabel { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 10px; display: block; }
+.catList { display: flex; flex-direction: column; gap: 8px; }
+.catRow { display: flex; align-items: center; gap: 8px; }
+.catName { font-size: 12px; color: var(--text-secondary); min-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.catTrack { flex: 1; height: 4px; background: var(--bg-hover); border-radius: 2px; overflow: hidden; }
+.catFill { height: 100%; background: var(--accent); border-radius: 2px; }
+.catCount { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); min-width: 16px; text-align: right; }
+.topIssue { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+
+/* Scale card */
+.scaleCard { padding: 14px 16px; }
+.scaleRow { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.scaleRow:last-child { margin-bottom: 0; }
+.scaleDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.scaleText { display: flex; flex-direction: column; gap: 2px; }
+.scaleRange { font-size: 12px; font-weight: 500; }
+.scaleDesc { font-size: 11px; color: var(--text-muted); }
