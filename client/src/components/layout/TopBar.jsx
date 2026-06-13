@@ -3,9 +3,12 @@ import { Bell } from 'lucide-react'
 import styles from './TopBar.module.css'
 
 const PAGE_TITLES = {
-  '/dashboard': { title: 'Dashboard', sub: 'Overview of all active infrastructure reports' },
-  '/submit':    { title: 'Submit Report', sub: 'File a new infrastructure incident report' },
-  '/reports':   { title: 'All Reports', sub: 'Browse and filter all submitted reports' },
+  '/dashboard': { title: 'Dashboard',          sub: 'System-wide overview of infrastructure reports' },
+  '/submit':    { title: 'Submit Report',       sub: 'File a new infrastructure damage report' },
+  '/map':       { title: 'Map View',            sub: 'Geographic visualization of incidents across Dhaka thanas' },
+  '/priority':  { title: 'Priority List',       sub: 'Ranked infrastructure issues by severity and impact score' },
+  '/areas':     { title: 'Area Intelligence',   sub: 'Per-thana risk profiles and infrastructure condition leaderboard' },
+  '/admin':     { title: 'Admin Dashboard',     sub: 'Authority verification and report management — restricted access' },
 }
 
 export default function TopBar() {
@@ -21,11 +24,11 @@ export default function TopBar() {
       <div className={styles.actions}>
         <div className={styles.clock}>
           {new Date().toLocaleDateString('en-GB', {
-            day: '2-digit', month: 'short', year: 'numeric',
+            weekday: 'short', day: '2-digit', month: 'short', year: 'numeric',
           })}
         </div>
         <button className={styles.bellBtn} aria-label="Notifications">
-          <Bell size={15} strokeWidth={1.75} />
+          <Bell size={14} strokeWidth={1.75} />
         </button>
         <div className={styles.avatar}>AU</div>
       </div>

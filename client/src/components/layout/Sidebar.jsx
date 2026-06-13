@@ -2,8 +2,10 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
   FilePlus,
-  FileText,
-  Shield,
+  Map,
+  ListOrdered,
+  BarChart2,
+  ShieldCheck,
   Activity,
 } from 'lucide-react'
 import styles from './Sidebar.module.css'
@@ -11,16 +13,19 @@ import styles from './Sidebar.module.css'
 const NAV_ITEMS = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/submit',    icon: FilePlus,        label: 'Submit Report' },
-  { to: '/reports',   icon: FileText,        label: 'All Reports' },
+  { to: '/map',       icon: Map,             label: 'Map View' },
+  { to: '/priority',  icon: ListOrdered,     label: 'Priority List' },
+  { to: '/areas',     icon: BarChart2,       label: 'Area Intelligence' },
 ]
+
+const ADMIN_ITEM = { to: '/admin', icon: ShieldCheck, label: 'Admin Panel' }
 
 export default function Sidebar() {
   return (
     <aside className={styles.sidebar}>
-      {/* Branding */}
       <div className={styles.brand}>
         <div className={styles.brandIcon}>
-          <Shield size={16} strokeWidth={2} />
+          <ShieldCheck size={15} strokeWidth={2} />
         </div>
         <div>
           <div className={styles.brandName}>NCDN-CIP</div>
@@ -28,7 +33,6 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* System status indicator */}
       <div className={styles.statusRow}>
         <Activity size={11} className={styles.statusDot} />
         <span className={styles.statusText}>System Online</span>
@@ -36,7 +40,6 @@ export default function Sidebar() {
 
       <div className={styles.divider} />
 
-      {/* Navigation */}
       <nav className={styles.nav}>
         <p className={styles.navSection}>Navigation</p>
         {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
@@ -47,15 +50,30 @@ export default function Sidebar() {
               `${styles.navItem} ${isActive ? styles.active : ''}`
             }
           >
-            <Icon size={15} strokeWidth={1.75} />
+            <Icon size={14} strokeWidth={1.75} />
             <span>{label}</span>
           </NavLink>
         ))}
       </nav>
 
+      <div className={styles.divider} style={{ margin: '12px 18px' }} />
+
+      <nav className={styles.nav}>
+        <p className={styles.navSection}>Authority</p>
+        <NavLink
+          to={ADMIN_ITEM.to}
+          className={({ isActive }) =>
+            `${styles.navItem} ${styles.adminItem} ${isActive ? styles.activeAdmin : ''}`
+          }
+        >
+          <ADMIN_ITEM.icon size={14} strokeWidth={1.75} />
+          <span>{ADMIN_ITEM.label}</span>
+          <span className={styles.restricted}>Restricted</span>
+        </NavLink>
+      </nav>
+
       <div className={styles.spacer} />
 
-      {/* Footer info */}
       <div className={styles.footer}>
         <p className={styles.footerText}>Dhaka City — 12 Thanas</p>
         <p className={styles.footerSub}>Hackathon MVP v1.0</p>
