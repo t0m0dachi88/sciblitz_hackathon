@@ -1,0 +1,155 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Filter bar */
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 20px;
+}
+
+.searchWrap {
+  position: relative;
+  flex: 1;
+  max-width: 320px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.searchInput:focus { border-color: var(--border-focus); }
+.searchInput::placeholder { color: var(--text-muted); }
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filterIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.filterLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.filterBtn {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.filterBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.filterActive {
+  background: rgba(59,130,246,0.1);
+  border-color: rgba(59,130,246,0.3);
+  color: var(--accent);
+}
+
+/* Count text */
+.countText {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Table */
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  padding: 0 16px 10px 0;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table td {
+  font-size: 13px;
+  color: var(--text-primary);
+  padding: 11px 16px 11px 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.row:last-child td {
+  border-bottom: none;
+}
+
+.typeCell {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.descCell {
+  font-size: 12px;
+  color: var(--text-secondary);
+  max-width: 300px;
+  line-height: 1.55;
+}
+
+.timeCell {
+  font-size: 11px !important;
+  color: var(--text-muted) !important;
+  white-space: nowrap;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.mockNote {
+  margin-top: 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
