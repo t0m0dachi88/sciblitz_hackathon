@@ -35,7 +35,8 @@ export default function SubmitReport() {
   const [thana, setThana] = useState('')
   const [category, setCategory] = useState('')
   const [dragging, setDragging] = useState(false)
-  const [status, setStatus] = useState('idle') // idle | loading | result | error
+  const [status, setStatus] = useState('idle') // idle | loading | result | error | saving | success
+  const [errorMessage, setErrorMessage] = useState(null)
   const [aiResult, setAiResult] = useState(null)
   const fileInputRef = useRef()
 
@@ -57,21 +58,71 @@ export default function SubmitReport() {
     setImageFile(null)
     setImagePreview(null)
     setStatus('idle')
+    setErrorMessage(null)
     setAiResult(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     if (!imageFile) return
 
-    // Phase 1: simulate AI call with a delay
     setStatus('loading')
+    setErrorMessage(null)
     setAiResult(null)
-    setTimeout(() => {
-      setAiResult(MOCK_AI_RESULT)
+    
+    try {
+      const formData = new FormData()
+      formData.append('image', imageFile)
+
+      const response = await fetch('http://localhost:5000/api/reports/analyze', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null)
+        throw new Error(errData?.details || errData?.error || 'Failed to analyze image')
+      }
+
+      const data = await response.json()
+      setAiResult(data)
       setStatus('result')
-    }, 1800)
+    } catch (error) {
+      console.error(error)
+      setErrorMessage(error.message)
+      setStatus('error')
+    }
+  }
+
+  async function handleConfirm() {
+    setStatus('saving')
+    try {
+      const payload = {
+        thana,
+        category,
+        description,
+        imageUrl: aiResult.imageUrl,
+        damage_type: aiResult.damage_type,
+        severity_level: aiResult.severity_level,
+        explanation: aiResult.explanation
+      }
+
+      const response = await fetch('http://localhost:5000/api/reports/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save report')
+      }
+
+      setStatus('success')
+    } catch (error) {
+      console.error(error)
+      setStatus('error')
+    }
   }
 
   const severityMeta = aiResult ? SEVERITY_META[aiResult.severity_level] : null
@@ -216,36 +267,64 @@ export default function SubmitReport() {
               </div>
             )}
 
-            {status === 'result' && aiResult && (
+            {status === 'error' && (
+              <div className={styles.resultEmpty}>
+                <div className={styles.emptyIcon}>
+                  <AlertTriangle size={18} strokeWidth={1.5} color="#ef4444" />
+                </div>
+                <p className={styles.emptyText}>Analysis Failed</p>
+                <p className={styles.emptySub}>{errorMessage || 'There was an error communicating with the AI service.'}</p>
+              </div>
+            )}
+
+            {(status === 'result' || status === 'saving' || status === 'success') && aiResult && (
               <div className={styles.resultContent}>
-                <div className={styles.resultRow}>
-                  <span className={styles.resultLabel}>Damage Type</span>
-                  <span className={styles.resultValue}>{aiResult.damage_type}</span>
-                </div>
-                <div className={styles.resultRow}>
-                  <span className={styles.resultLabel}>Severity Level</span>
-                  <span className={`badge badge-${aiResult.severity_level.toLowerCase()}`}>
-                    {SeverityIcon && <SeverityIcon size={10} />}
-                    {aiResult.severity_level}
-                  </span>
-                </div>
-                <div className={styles.resultRow} style={{ flexDirection: 'column', gap: 6 }}>
-                  <span className={styles.resultLabel}>AI Explanation</span>
-                  <p className={styles.explanation}>{aiResult.explanation}</p>
-                </div>
+                {status === 'success' ? (
+                  <div className={styles.resultEmpty} style={{ padding: '32px 0' }}>
+                    <CheckCircle size={32} color="#22c55e" strokeWidth={1.5} style={{ marginBottom: 16 }} />
+                    <p className={styles.emptyText}>Report Submitted Successfully</p>
+                    <p className={styles.emptySub}>Thank you for reporting. It has been saved to the database.</p>
+                    <button className="btn-primary" style={{ marginTop: 24 }} onClick={clearImage}>
+                      Submit Another Report
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className={styles.resultRow}>
+                      <span className={styles.resultLabel}>Damage Type</span>
+                      <span className={styles.resultValue}>{aiResult.damage_type}</span>
+                    </div>
+                    <div className={styles.resultRow}>
+                      <span className={styles.resultLabel}>Severity Level</span>
+                      <span className={`badge badge-${aiResult.severity_level.toLowerCase()}`}>
+                        {SeverityIcon && <SeverityIcon size={10} />}
+                        {aiResult.severity_level}
+                      </span>
+                    </div>
+                    <div className={styles.resultRow} style={{ flexDirection: 'column', gap: 6 }}>
+                      <span className={styles.resultLabel}>AI Explanation</span>
+                      <p className={styles.explanation}>{aiResult.explanation}</p>
+                    </div>
 
-                <div className={styles.aiNote}>
-                  Phase 1 — Simulated response. Gemini Vision API will be connected in Phase 3.
-                </div>
+                    <div className={styles.aiNote}>
+                      Live Gemini Vision API Result. Confirm to save report to database.
+                    </div>
 
-                <div className={styles.confirmActions}>
-                  <button className="btn-primary" type="button">
-                    <CheckCircle size={13} /> Confirm &amp; Save
-                  </button>
-                  <button className="btn-ghost" type="button" onClick={clearImage}>
-                    Discard
-                  </button>
-                </div>
+                    <div className={styles.confirmActions}>
+                      <button 
+                        className="btn-primary" 
+                        type="button" 
+                        onClick={handleConfirm}
+                        disabled={status === 'saving'}
+                      >
+                        {status === 'saving' ? <><Loader size={13} className={styles.spin}/> Saving...</> : <><CheckCircle size={13} /> Confirm &amp; Save</>}
+                      </button>
+                      <button className="btn-ghost" type="button" onClick={clearImage} disabled={status === 'saving'}>
+                        Discard
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
