@@ -1,24 +1,14 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertTriangle, CheckCircle, Clock, MapPin, Map, ListOrdered, BarChart2, ArrowRight } from 'lucide-react'
-import { MOCK_REPORTS, STATS } from '../data/mockReports'
+import { fetchStats, fetchReports } from '../api/reports'
 import styles from './Dashboard.module.css'
-
-const STAT_CARDS = [
-  { label: 'Total Reports',   value: STATS.total,    sub: 'All submitted incidents',      icon: MapPin,        color: 'blue'   },
-  { label: 'Pending Review',  value: STATS.pending,  sub: 'Awaiting verification',        icon: Clock,         color: 'yellow' },
-  { label: 'Critical Issues', value: STATS.critical, sub: 'Immediate action required',    icon: AlertTriangle, color: 'red'    },
-  { label: 'Verified',        value: STATS.verified, sub: 'Confirmed by authority',       icon: CheckCircle,   color: 'green'  },
-]
 
 const QUICK_NAV = [
   { to: '/map',      icon: Map,         label: 'Map View',         sub: 'View all incidents on Dhaka map' },
   { to: '/priority', icon: ListOrdered, label: 'Priority List',    sub: 'Ranked queue for action' },
   { to: '/areas',    icon: BarChart2,   label: 'Area Intelligence', sub: 'Thana risk leaderboard' },
 ]
-
-const RECENT = [...MOCK_REPORTS]
-  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  .slice(0, 8)
 
 function fmtTime(iso) {
   const d = new Date(iso)
@@ -27,6 +17,26 @@ function fmtTime(iso) {
 }
 
 export default function Dashboard() {
+  const [stats, setStats] = useState(null)
+  const [recent, setRecent] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([fetchStats(), fetchReports()])
+      .then(([statsData, reportsData]) => {
+        setStats(statsData)
+        setRecent(reportsData.slice(0, 8))
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const STAT_CARDS = stats ? [
+    { label: 'Total Reports',   value: stats.total,    sub: 'All submitted incidents',      icon: MapPin,        color: 'blue'   },
+    { label: 'Pending Review',  value: stats.pending,  sub: 'Awaiting verification',        icon: Clock,         color: 'yellow' },
+    { label: 'Critical Issues', value: stats.critical, sub: 'Immediate action required',    icon: AlertTriangle, color: 'red'    },
+    { label: 'Verified',        value: stats.verified, sub: 'Confirmed by authority',       icon: CheckCircle,   color: 'green'  },
+  ] : []
   return (
     <div className={styles.page}>
       {/* Stat Cards */}
@@ -79,16 +89,19 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {RECENT.map(r => (
-                <tr key={r.id}>
-                  <td className="mono">{r.id}</td>
+              {recent.map(r => (
+                <tr key={r._id}>
+                  <td className="mono">{r._id.slice(-6).toUpperCase()}</td>
                   <td>{r.category}</td>
                   <td>{r.thana}</td>
-                  <td><span className={`badge badge-${r.severity.toLowerCase()}`}>{r.severity}</span></td>
+                  <td><span className={`badge badge-${(r.severityLevel || 'low').toLowerCase()}`}>{r.severityLevel}</span></td>
                   <td><span className={`badge badge-${r.status}`}>{r.status}</span></td>
                   <td className={styles.timeCell}>{fmtTime(r.createdAt)}</td>
                 </tr>
               ))}
+              {recent.length === 0 && !loading && (
+                <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24 }}>No reports yet</td></tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -116,11 +129,11 @@ export default function Dashboard() {
 
           <div className={`card ${styles.severityBreakdown}`}>
             <p className={styles.panelTitle} style={{ marginBottom: 14 }}>Severity Breakdown</p>
-            {[
-              { label: 'Critical', count: STATS.critical, cls: 'badge-critical', pct: (STATS.critical / STATS.total * 100).toFixed(0) },
-              { label: 'High',     count: MOCK_REPORTS.filter(r => r.severity === 'High').length,   cls: 'badge-high',   pct: (MOCK_REPORTS.filter(r => r.severity === 'High').length / STATS.total * 100).toFixed(0) },
-              { label: 'Medium',   count: MOCK_REPORTS.filter(r => r.severity === 'Medium').length, cls: 'badge-medium', pct: (MOCK_REPORTS.filter(r => r.severity === 'Medium').length / STATS.total * 100).toFixed(0) },
-              { label: 'Low',      count: MOCK_REPORTS.filter(r => r.severity === 'Low').length,    cls: 'badge-low',    pct: (MOCK_REPORTS.filter(r => r.severity === 'Low').length / STATS.total * 100).toFixed(0) },
+            {stats ? [
+              { label: 'Critical', count: stats.critical, cls: 'badge-critical', pct: stats.total > 0 ? (stats.critical / stats.total * 100).toFixed(0) : 0 },
+              { label: 'High',     count: stats.high,     cls: 'badge-high',     pct: stats.total > 0 ? (stats.high / stats.total * 100).toFixed(0) : 0 },
+              { label: 'Medium',   count: stats.medium,   cls: 'badge-medium',   pct: stats.total > 0 ? (stats.medium / stats.total * 100).toFixed(0) : 0 },
+              { label: 'Low',      count: stats.low,      cls: 'badge-low',      pct: stats.total > 0 ? (stats.low / stats.total * 100).toFixed(0) : 0 },
             ].map(({ label, count, cls, pct }) => (
               <div key={label} className={styles.sevRow}>
                 <span className={`badge ${cls}`}>{label}</span>
@@ -129,7 +142,9 @@ export default function Dashboard() {
                 </div>
                 <span className={styles.sevCount}>{count}</span>
               </div>
-            ))}
+            )) : (
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading...</p>
+            )}
           </div>
         </div>
       </div>

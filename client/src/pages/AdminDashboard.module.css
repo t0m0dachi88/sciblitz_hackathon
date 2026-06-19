@@ -77,3 +77,23 @@
 .guideList { list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .guideList li { font-size: 11px; color: var(--text-secondary); padding-left: 12px; position: relative; line-height: 1.5; }
 .guideList li::before { content: ''; position: absolute; left: 0; top: 6px; width: 4px; height: 4px; background: var(--text-muted); border-radius: 50%; }
+
+.logoutBtn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.logoutBtn:hover {
+  background: rgba(239,68,68,0.1);
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.3);
+}

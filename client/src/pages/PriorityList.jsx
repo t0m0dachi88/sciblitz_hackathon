@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowUp, ArrowDown, ChevronUp } from 'lucide-react'
-import { MOCK_REPORTS } from '../data/mockReports'
+import { fetchReports } from '../api/reports'
+import { calcPriority } from '../data/mockReports'
 import styles from './PriorityList.module.css'
 
 const SORT_OPTIONS = [
@@ -29,17 +30,33 @@ function PriorityBar({ score }) {
 }
 
 export default function PriorityList() {
+  const [allReports, setAllReports] = useState([])
+  const [loading, setLoading] = useState(true)
   const [sortKey, setSortKey]   = useState('priorityScore')
   const [sortDir, setSortDir]   = useState('desc')
   const [filterSev, setFilterSev] = useState('All')
+
+  useEffect(() => {
+    fetchReports()
+      .then(setAllReports)
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
   function toggleSort(key) {
     if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
     else { setSortKey(key); setSortDir('desc') }
   }
 
-  const sorted = [...MOCK_REPORTS]
-    .filter(r => filterSev === 'All' || r.severity === filterSev)
+  const sev = (r) => r.severityLevel || r.severity || 'Low'
+
+  const withPriority = allReports.map(r => ({
+    ...r,
+    priorityScore: calcPriority(sev(r), r.category, r.reportCount || 1),
+  }))
+
+  const sorted = [...withPriority]
+    .filter(r => filterSev === 'All' || sev(r) === filterSev)
     .sort((a, b) => {
       let va = a[sortKey], vb = b[sortKey]
       if (sortKey === 'createdAt') { va = new Date(va); vb = new Date(vb) }
@@ -120,17 +137,17 @@ export default function PriorityList() {
           </thead>
           <tbody>
             {sorted.map((r, i) => (
-              <tr key={r.id} className={`${styles.row} ${r.severity === 'Critical' ? styles.rowCritical : ''}`}>
+              <tr key={r._id} className={`${styles.row} ${sev(r) === 'Critical' ? styles.rowCritical : ''}`}>
                 <td className={styles.rankCell}>{i + 1}</td>
-                <td className="mono">{r.id}</td>
+                <td className="mono">{r._id.slice(-6).toUpperCase()}</td>
                 <td className={styles.typeCell}>
                   <span className={styles.typeName}>{r.category}</span>
-                  <span className={styles.typeSub}>{r.damageType}</span>
+                  <span className={styles.typeSub}>{r.damageType || ''}</span>
                 </td>
                 <td>{r.thana}</td>
-                <td><span className={`badge badge-${r.severity.toLowerCase()}`}>{r.severity}</span></td>
+                <td><span className={`badge badge-${sev(r).toLowerCase()}`}>{sev(r)}</span></td>
                 <td><PriorityBar score={r.priorityScore} /></td>
-                <td className={styles.reportCell}>{r.reportCount}</td>
+                <td className={styles.reportCell}>{r.reportCount || 1}</td>
                 <td><span className={`badge badge-${r.status}`}>{r.status}</span></td>
                 <td className={`${styles.timeCell} mono`}>{fmtTime(r.createdAt)}</td>
               </tr>

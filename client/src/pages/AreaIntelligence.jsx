@@ -1,10 +1,30 @@
-import { useState } from 'react'
-import { getThanaStats, MOCK_REPORTS } from '../data/mockReports'
+import { useState, useEffect, useMemo } from 'react'
+import { fetchReports } from '../api/reports'
 import styles from './AreaIntelligence.module.css'
 
-const thanaStats = getThanaStats()
+const THANA_LIST = [
+  'Dhanmondi', 'Gulshan', 'Mirpur', 'Uttara',
+  'Mohammadpur', 'Motijheel', 'Rampura', 'Khilgaon',
+  'Pallabi', 'Cantonment', 'Tejgaon', 'Lalbagh',
+]
 
 const RISK_COLOR = { Critical: '#ef4444', High: '#f97316', Medium: '#eab308', Low: '#3b82f6' }
+
+function computeThanaStats(reports) {
+  return THANA_LIST.map(thana => {
+    const r = reports.filter(x => x.thana === thana)
+    const critical = r.filter(x => (x.severityLevel || x.severity) === 'Critical').length
+    const high = r.filter(x => (x.severityLevel || x.severity) === 'High').length
+    const total = r.length
+    const maxScore = Math.max(...r.map(x => x.priorityScore ?? 0), 0)
+    const infraScore = total === 0 ? 100 : Math.max(0, 100 - (critical * 25 + high * 10 + (total - critical - high) * 3))
+    const riskLevel = infraScore < 40 ? 'Critical' : infraScore < 65 ? 'High' : infraScore < 80 ? 'Medium' : 'Low'
+    const categories = {}
+    r.forEach(x => { categories[x.category] = (categories[x.category] ?? 0) + 1 })
+    const topIssue = Object.entries(categories).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'N/A'
+    return { thana, total, critical, high, infraScore, riskLevel, topIssue, maxPriority: maxScore }
+  }).sort((a, b) => a.infraScore - b.infraScore)
+}
 
 function InfraScore({ score }) {
   const color = score < 40 ? '#ef4444' : score < 65 ? '#f97316' : score < 80 ? '#eab308' : '#22c55e'
@@ -19,9 +39,24 @@ function InfraScore({ score }) {
 }
 
 export default function AreaIntelligence() {
-  const [selected, setSelected] = useState(thanaStats[0])
+  const [allReports, setAllReports] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const selectedReports = MOCK_REPORTS.filter(r => r.thana === selected.thana)
+  useEffect(() => {
+    fetchReports()
+      .then(setAllReports)
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const thanaStats = useMemo(() => computeThanaStats(allReports), [allReports])
+  const [selected, setSelected] = useState(null)
+
+  useEffect(() => {
+    if (thanaStats.length > 0 && !selected) setSelected(thanaStats[0])
+  }, [thanaStats, selected])
+
+  const selectedReports = allReports.filter(r => r.thana === selected?.thana)
   const categoryCounts = {}
   selectedReports.forEach(r => {
     categoryCounts[r.category] = (categoryCounts[r.category] ?? 0) + 1

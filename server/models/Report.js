@@ -8,9 +8,13 @@ const reportSchema = new mongoose.Schema({
   damageType: { type: String },
   severityLevel: { type: String },
   aiExplanation: { type: String },
-  status: { type: String, enum: ['pending', 'verified', 'resolved'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'verified', 'resolved', 'rejected'], default: 'pending' },
+  adminNote: { type: String },
+  lat: { type: Number },
+  lng: { type: Number },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, {
-  timestamps: true // Automatically adds createdAt and updatedAt
+  timestamps: true
 });
 
 const Report = mongoose.model('Report', reportSchema);

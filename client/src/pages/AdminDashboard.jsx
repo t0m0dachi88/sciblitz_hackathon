@@ -1,6 +1,8 @@
-import { useState } from 'react'
-import { CheckCircle, XCircle, Edit2, RotateCcw, ShieldCheck } from 'lucide-react'
-import { MOCK_REPORTS, STATS } from '../data/mockReports'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { CheckCircle, XCircle, Edit2, RotateCcw, ShieldCheck, LogOut } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { fetchReports, updateReport } from '../api/reports'
 import styles from './AdminDashboard.module.css'
 
 const SEVERITY_OPTIONS = ['Critical', 'High', 'Medium', 'Low']
@@ -12,13 +14,21 @@ function fmtTime(iso) {
 }
 
 export default function AdminDashboard() {
-  const [reports, setReports] = useState(
-    [...MOCK_REPORTS].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-  )
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+  const [reports, setReports] = useState([])
+  const [loading, setLoading] = useState(true)
   const [selected,    setSelected]    = useState(null)
   const [editSev,     setEditSev]     = useState(null)
   const [adminNote,   setAdminNote]   = useState('')
   const [activeTab,   setActiveTab]   = useState('pending')
+
+  useEffect(() => {
+    fetchReports({ all: true })
+      .then(data => setReports(data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))))
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
   const pending  = reports.filter(r => r.status === 'pending')
   const verified = reports.filter(r => r.status === 'verified')
@@ -29,20 +39,25 @@ export default function AdminDashboard() {
     pending, verified, rejected, resolved
   }[activeTab] ?? pending
 
-  function updateStatus(id, status) {
-    setReports(prev => prev.map(r =>
-      r.id === id
-        ? { ...r, status, severity: editSev ?? r.severity, adminNote: adminNote || r.adminNote }
-        : r
-    ))
-    if (selected?.id === id) setSelected(null)
-    setEditSev(null)
-    setAdminNote('')
+  async function updateStatus(id, status) {
+    try {
+      const updated = await updateReport(id, {
+        status,
+        severityLevel: editSev || undefined,
+        adminNote: adminNote || undefined,
+      })
+      setReports(prev => prev.map(r => r._id === id ? updated.report : r))
+      if (selected?._id === id) setSelected(null)
+      setEditSev(null)
+      setAdminNote('')
+    } catch (error) {
+      console.error('Failed to update report:', error)
+    }
   }
 
   function selectReport(r) {
     setSelected(r)
-    setEditSev(r.severity)
+    setEditSev(r.severityLevel || r.severity)
     setAdminNote(r.adminNote ?? '')
   }
 
@@ -62,7 +77,10 @@ export default function AdminDashboard() {
       {/* Auth notice */}
       <div className={styles.authBanner}>
         <ShieldCheck size={13} />
-        <span>Authority Access — Simulated Mode. All actions update local state only. Supabase integration in Phase 4.</span>
+        <span>Authority Access — Live database. Admin actions update reports in MongoDB.</span>
+        <button className={styles.logoutBtn} onClick={() => { logout(); navigate('/login') }}>
+          <LogOut size={12} /> Logout
+        </button>
       </div>
 
       {/* System stats row */}
@@ -120,15 +138,15 @@ export default function AdminDashboard() {
               <tbody>
                 {tabReports.map(r => (
                   <tr
-                    key={r.id}
-                    className={`${styles.row} ${selected?.id === r.id ? styles.rowSelected : ''}`}
+                    key={r._id}
+                    className={`${styles.row} ${selected?._id === r._id ? styles.rowSelected : ''}`}
                     onClick={() => selectReport(r)}
                   >
-                    <td className="mono">{r.id}</td>
+                    <td className="mono">{r._id.slice(-6).toUpperCase()}</td>
                     <td>{r.thana}</td>
                     <td>{r.category}</td>
-                    <td><span className={`badge badge-${r.severity.toLowerCase()}`}>{r.severity}</span></td>
-                    <td className={styles.monoCell}>{r.reportCount}</td>
+                    <td><span className={`badge badge-${(r.severityLevel || 'low').toLowerCase()}`}>{r.severityLevel}</span></td>
+                    <td className={styles.monoCell}>{r.reportCount || 1}</td>
                     <td className={`${styles.timeCell} mono`}>{fmtTime(r.createdAt)}</td>
                   </tr>
                 ))}
@@ -149,7 +167,7 @@ export default function AdminDashboard() {
               <div className={styles.reportMeta}>
                 <div className={styles.metaRow}>
                   <span className={styles.metaKey}>ID</span>
-                  <span className="mono" style={{ fontSize: 12 }}>{selected.id}</span>
+                  <span className="mono" style={{ fontSize: 12 }}>{selected._id.slice(-6).toUpperCase()}</span>
                 </div>
                 <div className={styles.metaRow}>
                   <span className={styles.metaKey}>Category</span>
@@ -163,17 +181,13 @@ export default function AdminDashboard() {
                   <span className={styles.metaKey}>Current Status</span>
                   <span className={`badge badge-${selected.status}`}>{selected.status}</span>
                 </div>
-                <div className={styles.metaRow}>
-                  <span className={styles.metaKey}>Citizen Reports</span>
-                  <span className={styles.metaVal}>{selected.reportCount}</span>
-                </div>
               </div>
 
               <div className={styles.divider} />
 
               <p className={styles.aiLabel}>AI Analysis</p>
-              <p className={styles.aiDamageType}>{selected.damageType}</p>
-              <p className={styles.aiExplanation}>{selected.explanation}</p>
+              <p className={styles.aiDamageType}>{selected.damageType || selected.category}</p>
+              <p className={styles.aiExplanation}>{selected.aiExplanation}</p>
 
               <div className={styles.divider} />
 
@@ -181,7 +195,7 @@ export default function AdminDashboard() {
               <select
                 id="sev-override"
                 className="select"
-                value={editSev ?? selected.severity}
+                value={editSev ?? selected.severityLevel}
                 onChange={e => setEditSev(e.target.value)}
                 style={{ marginBottom: 14 }}
               >
@@ -202,36 +216,30 @@ export default function AdminDashboard() {
               />
 
               <div className={styles.actionBtns}>
-                {selected.status === 'pending' && (
+                {['pending', 'rejected'].includes(selected.status) && (
                   <>
                     <button
                       className={styles.btnApprove}
-                      onClick={() => updateStatus(selected.id, 'verified')}
+                      onClick={() => updateStatus(selected._id, 'verified')}
                     >
                       <CheckCircle size={13} /> Verify Report
                     </button>
-                    <button
-                      className={styles.btnReject}
-                      onClick={() => updateStatus(selected.id, 'rejected')}
-                    >
-                      <XCircle size={13} /> Reject
-                    </button>
+                    {selected.status === 'pending' && (
+                      <button
+                        className={styles.btnReject}
+                        onClick={() => updateStatus(selected._id, 'rejected')}
+                      >
+                        <XCircle size={13} /> Reject
+                      </button>
+                    )}
                   </>
                 )}
                 {selected.status === 'verified' && (
                   <button
                     className={styles.btnResolve}
-                    onClick={() => updateStatus(selected.id, 'resolved')}
+                    onClick={() => updateStatus(selected._id, 'resolved')}
                   >
                     <RotateCcw size={13} /> Mark Resolved
-                  </button>
-                )}
-                {selected.status === 'rejected' && (
-                  <button
-                    className={styles.btnApprove}
-                    onClick={() => updateStatus(selected.id, 'verified')}
-                  >
-                    <CheckCircle size={13} /> Re-Verify
                   </button>
                 )}
               </div>

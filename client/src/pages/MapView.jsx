@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import { MOCK_REPORTS } from '../data/mockReports'
+import { fetchReports } from '../api/reports'
+import { THANA_COORDS } from '../data/mockReports'
 import styles from './MapView.module.css'
 
 const DHAKA_CENTER = [23.7808, 90.3927]
@@ -29,21 +30,39 @@ function fmtTime(iso) {
   })
 }
 
+function getCoords(r) {
+  if (r.lat && r.lng) return [r.lat, r.lng]
+  const c = THANA_COORDS[r.thana]
+  if (c) return c
+  return [23.7808, 90.3927]
+}
+
 export default function MapView() {
+  const [allReports, setAllReports] = useState([])
+  const [loading, setLoading] = useState(true)
   const [severityFilter, setSeverityFilter] = useState('All')
   const [statusFilter,   setStatusFilter]   = useState('All')
 
-  const filtered = MOCK_REPORTS.filter(r => {
-    const okSev = severityFilter === 'All' || r.severity === severityFilter
+  useEffect(() => {
+    fetchReports()
+      .then(setAllReports)
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const filtered = allReports.filter(r => {
+    const okSev = severityFilter === 'All' || (r.severityLevel || r.severity) === severityFilter
     const okSta = statusFilter   === 'All' || r.status   === statusFilter
     return okSev && okSta
   })
 
+  const sev = (r) => r.severityLevel || r.severity || 'Low'
+
   const counts = {
-    Critical: MOCK_REPORTS.filter(r => r.severity === 'Critical').length,
-    High:     MOCK_REPORTS.filter(r => r.severity === 'High').length,
-    Medium:   MOCK_REPORTS.filter(r => r.severity === 'Medium').length,
-    Low:      MOCK_REPORTS.filter(r => r.severity === 'Low').length,
+    Critical: allReports.filter(r => sev(r) === 'Critical').length,
+    High:     allReports.filter(r => sev(r) === 'High').length,
+    Medium:   allReports.filter(r => sev(r) === 'Medium').length,
+    Low:      allReports.filter(r => sev(r) === 'Low').length,
   }
 
   return (
@@ -93,15 +112,18 @@ export default function MapView() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             />
-            {filtered.map(r => (
+            {filtered.map(r => {
+              const level = sev(r)
+              const coords = getCoords(r)
+              return (
               <CircleMarker
-                key={r.id}
-                center={[r.lat, r.lng]}
-                radius={SEVERITY_RADIUS[r.severity]}
+                key={r._id}
+                center={coords}
+                radius={SEVERITY_RADIUS[level] || 6}
                 pathOptions={{
-                  fillColor: SEVERITY_COLOR[r.severity],
+                  fillColor: SEVERITY_COLOR[level],
                   fillOpacity: 0.85,
-                  color: SEVERITY_COLOR[r.severity],
+                  color: SEVERITY_COLOR[level],
                   weight: 1.5,
                   opacity: 1,
                 }}
@@ -109,12 +131,12 @@ export default function MapView() {
                 <Popup className={styles.popup}>
                   <div className={styles.popupInner}>
                     <div className={styles.popupHeader}>
-                      <span className={styles.popupId}>{r.id}</span>
-                      <span className={`badge badge-${r.severity.toLowerCase()}`}>{r.severity}</span>
+                      <span className={styles.popupId}>{r._id.slice(-6).toUpperCase()}</span>
+                      <span className={`badge badge-${level.toLowerCase()}`}>{level}</span>
                     </div>
                     <div className={styles.popupRow}>
                       <span className={styles.popupKey}>Type</span>
-                      <span className={styles.popupVal}>{r.category}</span>
+                      <span className={styles.popupVal}>{r.damageType || r.category}</span>
                     </div>
                     <div className={styles.popupRow}>
                       <span className={styles.popupKey}>Thana</span>
@@ -124,16 +146,12 @@ export default function MapView() {
                       <span className={styles.popupKey}>Status</span>
                       <span className={`badge badge-${r.status}`}>{r.status}</span>
                     </div>
-                    <div className={styles.popupRow}>
-                      <span className={styles.popupKey}>Reports</span>
-                      <span className={styles.popupVal}>{r.reportCount} citizens</span>
-                    </div>
-                    <p className={styles.popupDesc}>{r.explanation}</p>
+                    <p className={styles.popupDesc}>{r.aiExplanation}</p>
                     <div className={styles.popupTime}>{fmtTime(r.createdAt)}</div>
                   </div>
                 </Popup>
               </CircleMarker>
-            ))}
+            )})}
           </MapContainer>
         </div>
 
@@ -153,8 +171,8 @@ export default function MapView() {
           <div className={`card ${styles.summaryCard}`}>
             <p className={styles.legendTitle}>Incident Summary</p>
             <div className={styles.summaryList}>
-              {['pending', 'verified', 'resolved'].map(s => {
-                const cnt = MOCK_REPORTS.filter(r => r.status === s).length
+              {['pending', 'verified', 'resolved', 'rejected'].map(s => {
+                const cnt = allReports.filter(r => r.status === s).length
                 return (
                   <div key={s} className={styles.summaryRow}>
                     <span className={`badge badge-${s}`}>{s}</span>
@@ -168,9 +186,9 @@ export default function MapView() {
           <div className={`card ${styles.thanaCard}`}>
             <p className={styles.legendTitle}>Thana Coverage</p>
             <div className={styles.thanaList}>
-              {Array.from(new Set(MOCK_REPORTS.map(r => r.thana))).sort().map(t => {
-                const cnt = MOCK_REPORTS.filter(r => r.thana === t).length
-                const hasCritical = MOCK_REPORTS.some(r => r.thana === t && r.severity === 'Critical')
+              {Array.from(new Set(allReports.map(r => r.thana))).sort().map(t => {
+                const cnt = allReports.filter(r => r.thana === t).length
+                const hasCritical = allReports.some(r => r.thana === t && sev(r) === 'Critical')
                 return (
                   <div key={t} className={styles.thanaRow}>
                     <span

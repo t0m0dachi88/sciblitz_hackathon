@@ -44,7 +44,7 @@ export const CATEGORIES = [
 
 // Priority score formula:
 // severity(40%) + infra_type(20%) + report_count(15%) + population_density(25%)
-function calcPriority(severity, category, reportCount) {
+export function calcPriority(severity, category, reportCount) {
   const severityWeight = { Critical: 100, High: 75, Medium: 40, Low: 15 }
   const categoryWeight = { 'Bridge Damage': 100, 'Road Damage': 80, 'Flooding': 70, 'Electrical Hazard': 65, 'Structural Damage': 85, Other: 30 }
   const s = (severityWeight[severity] ?? 40) * 0.40

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { Upload, X, AlertTriangle, CheckCircle, Loader } from 'lucide-react'
+import { analyzeImage, confirmReport } from '../api/reports'
 import styles from './SubmitReport.module.css'
 
 const THANAS = [
@@ -31,6 +32,7 @@ const MOCK_AI_RESULT = {
 export default function SubmitReport() {
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
+  const [address, setAddress] = useState('')
   const [description, setDescription] = useState('')
   const [thana, setThana] = useState('')
   const [category, setCategory] = useState('')
@@ -72,20 +74,7 @@ export default function SubmitReport() {
     setAiResult(null)
     
     try {
-      const formData = new FormData()
-      formData.append('image', imageFile)
-
-      const response = await fetch('http://localhost:5000/api/reports/analyze', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => null)
-        throw new Error(errData?.details || errData?.error || 'Failed to analyze image')
-      }
-
-      const data = await response.json()
+      const data = await analyzeImage(imageFile, address.trim())
       setAiResult(data)
       setStatus('result')
     } catch (error) {
@@ -105,19 +94,12 @@ export default function SubmitReport() {
         imageUrl: aiResult.imageUrl,
         damage_type: aiResult.damage_type,
         severity_level: aiResult.severity_level,
-        explanation: aiResult.explanation
+        explanation: aiResult.explanation,
+        lat: aiResult.lat,
+        lng: aiResult.lng,
       }
 
-      const response = await fetch('http://localhost:5000/api/reports/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to save report')
-      }
-
+      await confirmReport(payload)
       setStatus('success')
     } catch (error) {
       console.error(error)
@@ -211,6 +193,17 @@ export default function SubmitReport() {
           </div>
 
           <div className={styles.field} style={{ marginTop: 16 }}>
+            <label className="label" htmlFor="address">Address / Location</label>
+            <input
+              id="address"
+              className="input"
+              placeholder="e.g. Mirpur 10, near Shankar bus stop, Dhaka"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.field} style={{ marginTop: 16 }}>
             <label className="label" htmlFor="description">Description</label>
             <textarea
               id="description"
@@ -301,6 +294,12 @@ export default function SubmitReport() {
                         {aiResult.severity_level}
                       </span>
                     </div>
+                    {aiResult.lat && aiResult.lng && (
+                      <div className={styles.resultRow}>
+                        <span className={styles.resultLabel}>Estimated Location</span>
+                        <span className={styles.resultValue}>{aiResult.lat.toFixed(4)}, {aiResult.lng.toFixed(4)}</span>
+                      </div>
+                    )}
                     <div className={styles.resultRow} style={{ flexDirection: 'column', gap: 6 }}>
                       <span className={styles.resultLabel}>AI Explanation</span>
                       <p className={styles.explanation}>{aiResult.explanation}</p>
