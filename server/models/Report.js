@@ -13,6 +13,8 @@ const reportSchema = new mongoose.Schema({
   lat: { type: Number },
   lng: { type: Number },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  priorityScore: { type: Number, default: 0 },
+  priorityTier: { type: String, default: 'Low' },
 }, {
   timestamps: true
 });

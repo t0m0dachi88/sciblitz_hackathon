@@ -4,8 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "setup": "node setup.js"
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "setup": "node setup.js",
+    "seed": "node seed.js",
+    "seed-incidents": "node seed-incidents.js"
   },
   "keywords": [],
   "author": "",
@@ -13,13 +16,17 @@
   "type": "module",
   "dependencies": {
     "@google/genai": "^2.9.0",
+    "@imagekit/nodejs": "^7.8.0",
     "bcryptjs": "^3.0.3",
-    "cloudinary": "^2.10.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.1",
     "multer": "^2.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

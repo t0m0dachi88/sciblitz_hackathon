@@ -1,7 +1,7 @@
 import express from 'express';
 import { analyzeReport, saveReport, getReports, getReportById, updateReport, getStats, getMyReports } from '../controllers/reportController.js';
 import { upload } from '../middleware/upload.js';
-import { protect } from '../middleware/auth.js';
+import { protect, adminOnly } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -36,6 +36,6 @@ router.get('/', (req, res, next) => {
 router.get('/:id', getReportById);
 
 // Route to update a report (status, severity, admin notes) — admin only
-router.put('/:id', protect, updateReport);
+router.put('/:id', protect, adminOnly, updateReport);
 
 export default router;

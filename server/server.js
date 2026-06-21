@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import reportRoutes from './routes/reportRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import areaRoutes from './routes/areaRoutes.js';
 import { connectDB } from './config/db.js';
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use('/uploads', express.static('uploads'));
 // Routes
 app.use('/api/reports', reportRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/areas', areaRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'NCDN-CIP Backend is running' });

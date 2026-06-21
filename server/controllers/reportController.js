@@ -1,6 +1,7 @@
 import { analyzeImageWithGemini } from '../services/geminiService.js';
+import { computePriorityScore } from '../services/priorityScore.js';
 import Report from '../models/Report.js';
-import cloudinary from '../config/cloudinary.js';
+import imagekit from '../config/imagekit.js';
 import fs from 'fs';
 
 const THANA_COORDS = {
@@ -29,13 +30,12 @@ export const analyzeReport = async (req, res) => {
 
     const aiResult = await analyzeImageWithGemini(imagePath, mimetype, address);
 
-    // Cloudinary upload temporarily disabled as requested
-    // const cloudinaryResult = await cloudinary.uploader.upload(imagePath, { folder: 'ncdn_cip_reports' });
-    // fs.unlinkSync(imagePath);
-    // const imageUrl = cloudinaryResult.secure_url;
-
-    // Using local file upload code for now
-    const imageUrl = `/uploads/${filename}`;
+    const ikResponse = await imagekit.files.upload({
+      file: fs.createReadStream(imagePath),
+      fileName: filename,
+    });
+    fs.unlinkSync(imagePath);
+    const imageUrl = ikResponse.url;
 
     return res.status(200).json({ ...aiResult, imageUrl });
   } catch (error) {
@@ -72,6 +72,12 @@ export const saveReport = async (req, res) => {
 
     await newReport.save();
 
+    const duplicateCount = await Report.countDocuments({ thana, category });
+    const { score, tier } = computePriorityScore(newReport, duplicateCount + 1);
+    await Report.findByIdAndUpdate(newReport._id, { priorityScore: score, priorityTier: tier });
+    newReport.priorityScore = score;
+    newReport.priorityTier = tier;
+
     return res.status(201).json({ message: 'Report saved successfully', report: newReport });
   } catch (error) {
     console.error('Error saving report:', error);
@@ -81,7 +87,7 @@ export const saveReport = async (req, res) => {
 
 export const getReports = async (req, res) => {
   try {
-    const { status, thana, severity, all } = req.query;
+    const { status, thana, severity, all, page, limit } = req.query;
 
     // Public: only show verified/resolved. Admin with ?all=true sees everything.
     const filter = {};
@@ -95,7 +101,18 @@ export const getReports = async (req, res) => {
     if (thana) filter.thana = thana;
     if (severity) filter.severityLevel = severity;
 
-    const reports = await Report.find(filter).sort({ createdAt: -1 });
+    if (page && limit) {
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+      const total = await Report.countDocuments(filter);
+      const reports = await Report.find(filter)
+        .sort({ priorityScore: -1, createdAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum);
+      return res.status(200).json({ reports, total, page: pageNum, totalPages: Math.ceil(total / limitNum) });
+    }
+
+    const reports = await Report.find(filter).sort({ priorityScore: -1, createdAt: -1 });
     return res.status(200).json(reports);
   } catch (error) {
     console.error('Error fetching reports:', error);
@@ -118,7 +135,21 @@ export const getReportById = async (req, res) => {
 
 export const getMyReports = async (req, res) => {
   try {
-    const reports = await Report.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    const { page, limit } = req.query;
+
+    if (page && limit) {
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+      const filter = { userId: req.user.id };
+      const total = await Report.countDocuments(filter);
+      const reports = await Report.find(filter)
+        .sort({ priorityScore: -1, createdAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum);
+      return res.status(200).json({ reports, total, page: pageNum, totalPages: Math.ceil(total / limitNum) });
+    }
+
+    const reports = await Report.find({ userId: req.user.id }).sort({ priorityScore: -1, createdAt: -1 });
     return res.status(200).json(reports);
   } catch (error) {
     console.error('Error fetching my reports:', error);
@@ -129,20 +160,23 @@ export const getMyReports = async (req, res) => {
 export const updateReport = async (req, res) => {
   try {
     const { status, severityLevel, adminNote } = req.body;
-    const updateFields = {};
-    if (status) updateFields.status = status;
-    if (severityLevel) updateFields.severityLevel = severityLevel;
-    if (adminNote !== undefined) updateFields.adminNote = adminNote;
 
-    const report = await Report.findByIdAndUpdate(
-      req.params.id,
-      { $set: updateFields },
-      { new: true, runValidators: true }
-    );
-
+    const report = await Report.findById(req.params.id);
     if (!report) {
       return res.status(404).json({ error: 'Report not found' });
     }
+
+    if (status) report.status = status;
+    if (severityLevel) report.severityLevel = severityLevel;
+    if (adminNote !== undefined) report.adminNote = adminNote;
+
+    const duplicateCount = await Report.countDocuments({ thana: report.thana, category: report.category });
+    const { score, tier } = computePriorityScore(report, duplicateCount);
+    report.priorityScore = score;
+    report.priorityTier = tier;
+
+    await report.save();
+
     return res.status(200).json({ message: 'Report updated successfully', report });
   } catch (error) {
     console.error('Error updating report:', error);

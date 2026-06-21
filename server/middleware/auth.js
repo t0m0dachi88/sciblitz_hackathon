@@ -15,3 +15,10 @@ export const protect = (req, res, next) => {
     return res.status(401).json({ error: 'Not authorized, invalid token' });
   }
 };
+
+export const adminOnly = (req, res, next) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ error: 'Access denied. Admin only.' });
+  }
+  next();
+};
