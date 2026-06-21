@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { fetchReports } from '../api/reports'
@@ -38,6 +39,7 @@ function getCoords(r) {
 }
 
 export default function MapView() {
+  const navigate = useNavigate()
   const [allReports, setAllReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [severityFilter, setSeverityFilter] = useState('All')
@@ -148,6 +150,7 @@ export default function MapView() {
                     </div>
                     <p className={styles.popupDesc}>{r.aiExplanation}</p>
                     <div className={styles.popupTime}>{fmtTime(r.createdAt)}</div>
+                    <button className={styles.popupBtn} onClick={() => navigate(`/report/${r._id}`)}>View Details</button>
                   </div>
                 </Popup>
               </CircleMarker>

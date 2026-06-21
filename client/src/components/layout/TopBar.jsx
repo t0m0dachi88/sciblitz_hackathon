@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 import { Bell } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 import styles from './TopBar.module.css'
 
 const PAGE_TITLES = {
@@ -9,11 +10,14 @@ const PAGE_TITLES = {
   '/priority':  { title: 'Priority List',       sub: 'Ranked infrastructure issues by severity and impact score' },
   '/areas':     { title: 'Area Intelligence',   sub: 'Per-thana risk profiles and infrastructure condition leaderboard' },
   '/admin':     { title: 'Admin Dashboard',     sub: 'Authority verification and report management — restricted access' },
+  '/my-reports':{ title: 'My Reports',          sub: 'Reports you have submitted and their current status' },
 }
 
 export default function TopBar() {
   const { pathname } = useLocation()
+  const { user, isAuth } = useAuth()
   const meta = PAGE_TITLES[pathname] ?? { title: 'NCDN-CIP', sub: '' }
+  const initials = user?.name ? user.name.slice(0, 2).toUpperCase() : isAuth ? user?.email?.charAt(0).toUpperCase() || 'U' : 'AU'
 
   return (
     <header className={styles.topbar}>
@@ -30,7 +34,7 @@ export default function TopBar() {
         <button className={styles.bellBtn} aria-label="Notifications">
           <Bell size={14} strokeWidth={1.75} />
         </button>
-        <div className={styles.avatar}>AU</div>
+        <div className={styles.avatar}>{initials}</div>
       </div>
     </header>
   )

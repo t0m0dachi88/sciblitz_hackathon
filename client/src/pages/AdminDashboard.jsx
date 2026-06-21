@@ -25,7 +25,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchReports({ all: true })
-      .then(data => setReports(data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))))
+      .then(data => setReports(data))
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
@@ -127,11 +127,11 @@ export default function AdminDashboard() {
             <table className={styles.table}>
               <thead>
                 <tr>
+                  <th>Priority</th>
                   <th>Report ID</th>
                   <th>Thana</th>
                   <th>Category</th>
                   <th>Severity</th>
-                  <th>Reports</th>
                   <th>Submitted</th>
                 </tr>
               </thead>
@@ -142,16 +142,20 @@ export default function AdminDashboard() {
                     className={`${styles.row} ${selected?._id === r._id ? styles.rowSelected : ''}`}
                     onClick={() => selectReport(r)}
                   >
+                    <td>
+                      <span className={`badge badge-${(r.priorityTier || 'low').toLowerCase()}`}>
+                        {r.priorityScore ?? '-'}
+                      </span>
+                    </td>
                     <td className="mono">{r._id.slice(-6).toUpperCase()}</td>
                     <td>{r.thana}</td>
                     <td>{r.category}</td>
                     <td><span className={`badge badge-${(r.severityLevel || 'low').toLowerCase()}`}>{r.severityLevel}</span></td>
-                    <td className={styles.monoCell}>{r.reportCount || 1}</td>
                     <td className={`${styles.timeCell} mono`}>{fmtTime(r.createdAt)}</td>
                   </tr>
                 ))}
                 {tabReports.length === 0 && (
-                  <tr><td colSpan={6} className={styles.emptyCell}>No reports in this category.</td></tr>
+                  <tr><td colSpan={7} className={styles.emptyCell}>No reports in this category.</td></tr>
                 )}
               </tbody>
             </table>
@@ -180,6 +184,12 @@ export default function AdminDashboard() {
                 <div className={styles.metaRow}>
                   <span className={styles.metaKey}>Current Status</span>
                   <span className={`badge badge-${selected.status}`}>{selected.status}</span>
+                </div>
+                <div className={styles.metaRow}>
+                  <span className={styles.metaKey}>Priority</span>
+                  <span className={`badge badge-${(selected.priorityTier || 'low').toLowerCase()}`}>
+                    {selected.priorityScore ?? '-'} — {selected.priorityTier || 'Low'}
+                  </span>
                 </div>
               </div>
 

@@ -2,4 +2,5 @@ implementation_plan.md
 NCDN-CIP.md
 NCDN-CIP.docx
 /server/node_modules
+/server/uploads/
 .env

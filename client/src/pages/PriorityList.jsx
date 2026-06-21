@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ArrowUp, ArrowDown, ChevronUp } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { fetchReports } from '../api/reports'
-import { calcPriority } from '../data/mockReports'
 import styles from './PriorityList.module.css'
 
 const SORT_OPTIONS = [
@@ -30,6 +30,7 @@ function PriorityBar({ score }) {
 }
 
 export default function PriorityList() {
+  const navigate = useNavigate()
   const [allReports, setAllReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [sortKey, setSortKey]   = useState('priorityScore')
@@ -50,12 +51,7 @@ export default function PriorityList() {
 
   const sev = (r) => r.severityLevel || r.severity || 'Low'
 
-  const withPriority = allReports.map(r => ({
-    ...r,
-    priorityScore: calcPriority(sev(r), r.category, r.reportCount || 1),
-  }))
-
-  const sorted = [...withPriority]
+  const sorted = [...allReports]
     .filter(r => filterSev === 'All' || sev(r) === filterSev)
     .sort((a, b) => {
       let va = a[sortKey], vb = b[sortKey]
@@ -137,7 +133,7 @@ export default function PriorityList() {
           </thead>
           <tbody>
             {sorted.map((r, i) => (
-              <tr key={r._id} className={`${styles.row} ${sev(r) === 'Critical' ? styles.rowCritical : ''}`}>
+              <tr key={r._id} className={`${styles.row} ${sev(r) === 'Critical' ? styles.rowCritical : ''}`} onClick={() => navigate(`/report/${r._id}`)} style={{ cursor: 'pointer' }}>
                 <td className={styles.rankCell}>{i + 1}</td>
                 <td className="mono">{r._id.slice(-6).toUpperCase()}</td>
                 <td className={styles.typeCell}>

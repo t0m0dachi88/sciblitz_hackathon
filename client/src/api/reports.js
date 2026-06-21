@@ -1,4 +1,6 @@
 const API_BASE = '/api/reports'
+const AUTH_BASE = '/api/auth'
+const AREAS_BASE = '/api/areas'
 
 function authHeaders() {
   const token = localStorage.getItem('ncdn_token')
@@ -46,6 +48,37 @@ export async function updateReport(id, data) {
   return res.json()
 }
 
+export async function signup(data) {
+  const res = await fetch(`${AUTH_BASE}/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error || 'Signup failed')
+  return json
+}
+
+export async function getMe() {
+  const token = localStorage.getItem('ncdn_token')
+  if (!token) return null
+  const res = await fetch(`${AUTH_BASE}/me`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  })
+  if (!res.ok) return null
+  const json = await res.json()
+  return json.user
+}
+
+export async function fetchMyReports() {
+  const token = localStorage.getItem('ncdn_token')
+  const res = await fetch(`${API_BASE}/mine`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error('Failed to fetch your reports')
+  return res.json()
+}
+
 export async function analyzeImage(imageFile, address = '') {
   const formData = new FormData()
   formData.append('image', imageFile)
@@ -61,10 +94,37 @@ export async function analyzeImage(imageFile, address = '') {
   return res.json()
 }
 
+export async function fetchAreaProfiles() {
+  const res = await fetch(`${AREAS_BASE}/profiles`)
+  if (!res.ok) throw new Error('Failed to fetch area profiles')
+  return res.json()
+}
+
+export async function fetchAreaProfile(thana) {
+  const res = await fetch(`${AREAS_BASE}/profiles/${encodeURIComponent(thana)}`)
+  if (!res.ok) throw new Error('Failed to fetch area profile')
+  return res.json()
+}
+
+export async function fetchLeaderboard() {
+  const res = await fetch(`${AREAS_BASE}/leaderboard`)
+  if (!res.ok) throw new Error('Failed to fetch leaderboard')
+  return res.json()
+}
+
+export async function generateAreaReport(thana) {
+  const res = await fetch(`${AREAS_BASE}/report/${encodeURIComponent(thana)}`, {
+    method: 'POST',
+    headers: { ...authHeaders() },
+  })
+  if (!res.ok) throw new Error('Failed to generate report')
+  return res.json()
+}
+
 export async function confirmReport(data) {
   const res = await fetch(`${API_BASE}/confirm`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(data),
   })
   if (!res.ok) throw new Error('Failed to save report')

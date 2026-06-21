@@ -8,6 +8,10 @@ import PriorityList from './pages/PriorityList'
 import AreaIntelligence from './pages/AreaIntelligence'
 import AdminDashboard from './pages/AdminDashboard'
 import Login from './pages/Login'
+import SignUp from './pages/SignUp'
+import MyReports from './pages/MyReports'
+import ReportDetail from './pages/ReportDetail'
+import AreaDetail from './pages/AreaDetail'
 
 function ProtectedRoute({ children }) {
   const { isAuth, loading } = useAuth()
@@ -22,6 +26,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard"  element={<Dashboard />} />
@@ -29,7 +34,10 @@ export default function App() {
             <Route path="map"        element={<MapView />} />
             <Route path="priority"   element={<PriorityList />} />
             <Route path="areas"      element={<AreaIntelligence />} />
+            <Route path="my-reports" element={<ProtectedRoute><MyReports /></ProtectedRoute>} />
             <Route path="admin"      element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="report/:id" element={<ReportDetail />} />
+            <Route path="areas/:thana" element={<AreaDetail />} />
           </Route>
         </Routes>
       </BrowserRouter>

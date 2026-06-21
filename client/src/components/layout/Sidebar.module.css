@@ -155,3 +155,96 @@
   color: var(--text-muted);
   margin-top: 2px;
 }
+
+/* Auth footer */
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.userAvatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.userDetails {
+  min-width: 0;
+}
+
+.userName {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userRole {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.logoutBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  padding: 5px;
+  cursor: pointer;
+  display: flex;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+.logoutBtn:hover {
+  background: rgba(239,68,68,0.1);
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.3);
+}
+
+.authLinks {
+  display: flex;
+  gap: 6px;
+}
+
+.authLink {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.authLink:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
