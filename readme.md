@@ -1,4 +1,4 @@
-# # NCDN-CIP MVP (Hackathon Version)
+# # UrbanEye MVP (Hackathon Version)
 
 ## AI-Powered Urban Infrastructure & Incident Intelligence System
 

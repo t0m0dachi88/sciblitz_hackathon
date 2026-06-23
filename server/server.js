@@ -29,7 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/areas', areaRoutes);
 
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'NCDN-CIP Backend is running' });
+  res.status(200).json({ status: 'ok', message: 'UrbanEye Backend is running' });
 });
 
 // Serve built frontend

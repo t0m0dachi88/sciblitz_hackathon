@@ -53,7 +53,7 @@ const REPORTS_DATA = [
 
 async function seed() {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ncdn_cip');
+    await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/urbaneye');
     console.log('MongoDB connected');
 
     // Create citizen user

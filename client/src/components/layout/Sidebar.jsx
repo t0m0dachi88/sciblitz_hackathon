@@ -37,7 +37,7 @@ export default function Sidebar() {
           <ShieldCheck size={15} strokeWidth={2} />
         </div>
         <div>
-          <div className={styles.brandName}>NCDN-CIP</div>
+          <div className={styles.brandName}>UrbanEye</div>
           <div className={styles.brandSub}>Urban Intelligence</div>
         </div>
       </div>
