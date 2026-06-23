@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import reportRoutes from './routes/reportRoutes.js';
@@ -22,13 +23,19 @@ app.use(express.json({ limit: '10mb' }));
 // Serve uploads directory statically
 app.use('/uploads', express.static('uploads'));
 
-// Routes
+// API routes
 app.use('/api/reports', reportRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/areas', areaRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'NCDN-CIP Backend is running' });
+});
+
+// Serve built frontend
+app.use(express.static('public'));
+app.get('/{*path}', (req, res) => {
+  res.sendFile(path.resolve('public', 'index.html'));
 });
 
 connectDB().then(() => {

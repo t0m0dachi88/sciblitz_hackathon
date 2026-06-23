@@ -1,6 +1,6 @@
-const API_BASE = 'https://sciblitz-hackathon-backend.onrender.com/api/reports'
-const AUTH_BASE = 'https://sciblitz-hackathon-backend.onrender.com/api/auth'
-const AREAS_BASE = 'https://sciblitz-hackathon-backend.onrender.com/api/areas'
+const API_BASE = '/api/reports'
+const AUTH_BASE = '/api/auth'
+const AREAS_BASE = '/api/areas'
 
 function authHeaders() {
   const token = localStorage.getItem('ncdn_token')
