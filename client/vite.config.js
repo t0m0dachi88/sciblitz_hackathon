@@ -9,7 +9,7 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/api': 'https://sciblitz-hackathon-backend.onrender.com',
+      '/api': 'http://localhost:5000',
     },
   },
 })
