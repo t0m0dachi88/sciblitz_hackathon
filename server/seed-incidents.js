@@ -150,7 +150,7 @@ function generateIncidents() {
 
 async function seed() {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/urbaneye');
+    await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ncdn_cip');
     console.log('MongoDB connected');
 
     await Incident.deleteMany({});

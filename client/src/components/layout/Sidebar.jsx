@@ -7,10 +7,7 @@ import {
   BarChart2,
   ShieldCheck,
   Activity,
-  User,
-  LogIn,
   LogOut,
-  UserPlus,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import styles from './Sidebar.module.css'
@@ -21,7 +18,6 @@ const NAV_ITEMS = [
   { to: '/map',       icon: Map,             label: 'Map View' },
   { to: '/priority',  icon: ListOrdered,     label: 'Priority List' },
   { to: '/areas',     icon: BarChart2,       label: 'Area Intelligence' },
-  { to: '/my-reports', icon: User,           label: 'My Reports' },
 ]
 
 const ADMIN_ITEM = { to: '/admin', icon: ShieldCheck, label: 'Admin Panel' }
@@ -65,29 +61,24 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {isAdmin && (
-        <>
-          <div className={styles.divider} style={{ margin: '12px 18px' }} />
-          <nav className={styles.nav}>
-            <p className={styles.navSection}>Authority</p>
-            <NavLink
-              to={ADMIN_ITEM.to}
-              className={({ isActive }) =>
-                `${styles.navItem} ${isActive ? styles.activeAdmin : ''}`
-              }
-            >
-              <ADMIN_ITEM.icon size={14} strokeWidth={1.75} />
-              <span>{ADMIN_ITEM.label}</span>
-              <span className={styles.restricted}>Admin</span>
-            </NavLink>
-          </nav>
-        </>
-      )}
+      <div className={styles.divider} style={{ margin: '12px 18px' }} />
+      <nav className={styles.nav}>
+        <p className={styles.navSection}>Authority</p>
+        <NavLink
+          to={ADMIN_ITEM.to}
+          className={({ isActive }) =>
+            `${styles.navItem} ${isActive ? styles.activeAdmin : ''}`
+          }
+        >
+          <ADMIN_ITEM.icon size={14} strokeWidth={1.75} />
+          <span>{ADMIN_ITEM.label}</span>
+        </NavLink>
+      </nav>
 
       <div className={styles.spacer} />
 
       <div className={styles.footer}>
-        {isAuth ? (
+        {isAuth && (
           <div className={styles.userSection}>
             <div className={styles.userInfo}>
               <div className={styles.userAvatar}>{user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}</div>
@@ -98,15 +89,6 @@ export default function Sidebar() {
             </div>
             <button className={styles.logoutBtn} onClick={() => { logout(); navigate('/') }}>
               <LogOut size={12} />
-            </button>
-          </div>
-        ) : (
-          <div className={styles.authLinks}>
-            <button className={styles.authLink} onClick={() => navigate('/login')}>
-              <LogIn size={12} /> Sign In
-            </button>
-            <button className={styles.authLink} onClick={() => navigate('/signup')}>
-              <UserPlus size={12} /> Sign Up
             </button>
           </div>
         )}
