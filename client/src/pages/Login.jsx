@@ -40,7 +40,7 @@ export default function Login() {
         <div className={styles.header}>
           <div className={styles.icon}><LogIn size={20} /></div>
           <h1 className={styles.title}>Sign In</h1>
-          <p className={styles.sub}>NCDN-CIP Citizen &amp; Authority Access</p>
+          <p className={styles.sub}>UrbanEye Citizen </p>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
