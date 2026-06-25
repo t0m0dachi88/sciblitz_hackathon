@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
 import { AlertTriangle, CheckCircle, Clock, MapPin, Map, ListOrdered, BarChart2, ArrowRight } from 'lucide-react'
 import { fetchStats, fetchReports } from '../api/reports'
+import { THANA_COORDS } from '../data/mockReports'
 import styles from './Dashboard.module.css'
+
+const DHAKA_CENTER = [23.7808, 90.3927]
+const DHAKA_ZOOM = 12
 
 const QUICK_NAV = [
   { to: '/map',      icon: Map,         label: 'Map View',         sub: 'View all incidents on Dhaka map' },
@@ -10,10 +15,17 @@ const QUICK_NAV = [
   { to: '/areas',    icon: BarChart2,   label: 'Area Intelligence', sub: 'Thana risk leaderboard' },
 ]
 
+const SEVERITY_COLOR = { Critical: '#ef4444', High: '#f97316', Medium: '#eab308', Low: '#3b82f6' }
+
 function fmtTime(iso) {
   const d = new Date(iso)
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' +
          d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+}
+
+function getCoords(r) {
+  if (r.lat && r.lng) return [r.lat, r.lng]
+  return THANA_COORDS[r.thana] || DHAKA_CENTER
 }
 
 export default function Dashboard() {
@@ -37,9 +49,62 @@ export default function Dashboard() {
     { label: 'Critical Issues', value: stats.critical, sub: 'Immediate action required',    icon: AlertTriangle, color: 'red'    },
     { label: 'Verified',        value: stats.verified, sub: 'Confirmed by authority',       icon: CheckCircle,   color: 'green'  },
   ] : []
+
+  const sev = (r) => r.severityLevel || r.severity || 'Low'
+
   return (
     <div className={styles.page}>
-      {/* Stat Cards */}
+      {/* Primary: Infrastructure Map */}
+      <div className={`card ${styles.mapCard}`}>
+        <div className={styles.mapHeader}>
+          <div>
+            <span className={styles.panelTitle}>Infrastructure Map</span>
+            <span className={styles.panelSub}>Geographic overview of all incidents across Dhaka</span>
+          </div>
+          <Link to="/map" className={styles.viewAllLink}>Open Full Map <ArrowRight size={12} /></Link>
+        </div>
+        <div className={styles.mapWrap}>
+          <MapContainer center={DHAKA_CENTER} zoom={DHAKA_ZOOM} className={styles.map} scrollWheelZoom={true}>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            />
+            {recent.map(r => {
+              const level = sev(r)
+              const coords = getCoords(r)
+              return (
+                <CircleMarker
+                  key={r._id}
+                  center={coords}
+                  radius={8}
+                  pathOptions={{
+                    fillColor: SEVERITY_COLOR[level] || '#3b82f6',
+                    fillOpacity: 0.85,
+                    color: SEVERITY_COLOR[level] || '#3b82f6',
+                    weight: 1.5,
+                    opacity: 1,
+                  }}
+                >
+                  <Popup>
+                    <div style={{ padding: 4, minWidth: 180 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <strong style={{ fontSize: 12 }}>{r.category}</strong>
+                        <span className="badge" style={{ fontSize: 10, padding: '2px 6px' }}>{level}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: '#888' }}>{r.thana}</div>
+                      <Link to={`/report/${r._id}`} style={{ display: 'block', marginTop: 6, fontSize: 11, color: '#3b82f6', textDecoration: 'none' }}>
+                        View Details
+                      </Link>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              )
+            })}
+          </MapContainer>
+        </div>
+      </div>
+
+      {/* Stats */}
       <div className={styles.statsGrid}>
         {STAT_CARDS.map(({ label, value, sub, icon: Icon, color }) => (
           <div key={label} className={`card ${styles.statCard}`}>
@@ -55,7 +120,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Quick Nav Cards */}
+      {/* Quick Nav */}
       <div className={styles.quickNav}>
         {QUICK_NAV.map(({ to, icon: Icon, label, sub }) => (
           <Link key={to} to={to} className={`card ${styles.quickCard}`}>
@@ -71,7 +136,6 @@ export default function Dashboard() {
 
       {/* Bottom row */}
       <div className={styles.bottomRow}>
-        {/* Recent reports table */}
         <div className={`card ${styles.recentPanel}`}>
           <div className={styles.panelHeader}>
             <span className={styles.panelTitle}>Recent Reports</span>
@@ -106,7 +170,6 @@ export default function Dashboard() {
           </table>
         </div>
 
-        {/* System info */}
         <div className={styles.sideCol}>
           <div className={`card ${styles.infoCard}`}>
             <p className={styles.panelTitle}>System Info</p>

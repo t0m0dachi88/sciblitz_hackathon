@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { fetchReports } from '../api/reports'
 import { THANA_COORDS } from '../data/mockReports'
@@ -25,6 +25,16 @@ const SEVERITY_RADIUS = {
 
 const FILTERS = ['All', 'Critical', 'High', 'Medium', 'Low']
 
+function MapController({ selectedThana }) {
+  const map = useMap()
+  useEffect(() => {
+    if (selectedThana && THANA_COORDS[selectedThana]) {
+      map.flyTo(THANA_COORDS[selectedThana], 14, { duration: 0.8 })
+    }
+  }, [selectedThana, map])
+  return null
+}
+
 function fmtTime(iso) {
   return new Date(iso).toLocaleString('en-GB', {
     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
@@ -38,12 +48,15 @@ function getCoords(r) {
   return [23.7808, 90.3927]
 }
 
+const ALL_THANAS = Object.keys(THANA_COORDS).sort()
+
 export default function MapView() {
   const navigate = useNavigate()
   const [allReports, setAllReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [severityFilter, setSeverityFilter] = useState('All')
   const [statusFilter,   setStatusFilter]   = useState('All')
+  const [selectedThana, setSelectedThana] = useState(null)
 
   useEffect(() => {
     fetchReports()
@@ -66,6 +79,11 @@ export default function MapView() {
     Medium:   allReports.filter(r => sev(r) === 'Medium').length,
     Low:      allReports.filter(r => sev(r) === 'Low').length,
   }
+
+  const thanaCounts = {}
+  allReports.forEach(r => {
+    thanaCounts[r.thana] = (thanaCounts[r.thana] || 0) + 1
+  })
 
   return (
     <div className={styles.page}>
@@ -100,7 +118,7 @@ export default function MapView() {
         <span className={styles.countText}>{filtered.length} incidents shown</span>
       </div>
 
-      {/* Map + Legend row */}
+      {/* Map + Sidebar row */}
       <div className={styles.mapRow}>
         {/* Map */}
         <div className={styles.mapWrap}>
@@ -114,6 +132,7 @@ export default function MapView() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             />
+            <MapController selectedThana={selectedThana} />
             {filtered.map(r => {
               const level = sev(r)
               const coords = getCoords(r)
@@ -158,8 +177,30 @@ export default function MapView() {
           </MapContainer>
         </div>
 
-        {/* Legend + summary */}
+        {/* Sidebar */}
         <div className={styles.sidebar}>
+          {/* Thana Selector */}
+          <div className={`card ${styles.thanaSelector}`}>
+            <p className={styles.legendTitle}>Jump to Thana</p>
+            <div className={styles.thanaList}>
+              {ALL_THANAS.map(t => {
+                const cnt = thanaCounts[t] || 0
+                const isActive = selectedThana === t
+                return (
+                  <button
+                    key={t}
+                    className={`${styles.thanaJump} ${isActive ? styles.thanaJumpActive : ''}`}
+                    onClick={() => setSelectedThana(isActive ? null : t)}
+                  >
+                    <span className={styles.thanaName}>{t}</span>
+                    <span className={styles.thanaCount}>{cnt}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Legend */}
           <div className={`card ${styles.legend}`}>
             <p className={styles.legendTitle}>Severity Legend</p>
             {Object.entries(SEVERITY_COLOR).map(([level, color]) => (
@@ -180,27 +221,6 @@ export default function MapView() {
                   <div key={s} className={styles.summaryRow}>
                     <span className={`badge badge-${s}`}>{s}</span>
                     <span className={styles.summaryCount}>{cnt} reports</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className={`card ${styles.thanaCard}`}>
-            <p className={styles.legendTitle}>Thana Coverage</p>
-            <div className={styles.thanaList}>
-              {Array.from(new Set(allReports.map(r => r.thana))).sort().map(t => {
-                const cnt = allReports.filter(r => r.thana === t).length
-                const hasCritical = allReports.some(r => r.thana === t && sev(r) === 'Critical')
-                return (
-                  <div key={t} className={styles.thanaRow}>
-                    <span
-                      className={styles.thanaName}
-                      style={{ color: hasCritical ? '#ef4444' : 'var(--text-secondary)' }}
-                    >
-                      {t}
-                    </span>
-                    <span className={styles.thanaCount}>{cnt}</span>
                   </div>
                 )
               })}

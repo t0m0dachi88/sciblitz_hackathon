@@ -57,6 +57,21 @@
 .summaryRow { display: flex; align-items: center; justify-content: space-between; }
 .summaryCount { font-size: 12px; color: var(--text-muted); }
 
+/* Thana selector */
+.thanaSelector { padding: 14px 16px; }
+.thanaList { display: flex; flex-direction: column; gap: 2px; }
+.thanaJump {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 6px 8px; background: transparent; border: 1px solid transparent;
+  border-radius: 3px; cursor: pointer; font-family: var(--font-sans);
+  transition: background 0.1s, border-color 0.1s;
+}
+.thanaJump:hover { background: var(--bg-hover); }
+.thanaJumpActive { background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.25); }
+.thanaJumpActive .thanaName { color: var(--accent); font-weight: 600; }
+.thanaName { font-size: 12px; color: var(--text-secondary); text-align: left; }
+.thanaCount { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+
 .thanaCard { padding: 14px 16px; }
 .thanaList { display: flex; flex-direction: column; gap: 6px; margin-top: 0; }
 .thanaRow { display: flex; justify-content: space-between; align-items: center; }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { fetchAreaProfiles } from '../api/reports'
 import { THANA_COORDS } from '../data/mockReports'
 import styles from './AreaIntelligence.module.css'
@@ -17,6 +18,8 @@ const CATEGORY_LABELS = {
   public_safety_hazard: 'Public Safety Hazard', vandalism: 'Vandalism', other: 'Other',
 }
 
+const PIE_COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#6b7280']
+
 function RiskBar({ score }) {
   const color = score >= 60 ? '#ef4444' : score >= 30 ? '#eab308' : '#3b82f6'
   return (
@@ -29,11 +32,87 @@ function RiskBar({ score }) {
   )
 }
 
+function CustomTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null
+  const data = payload[0].payload
+  return (
+    <div className={styles.pieTooltip}>
+      <span className={styles.pieTooltipName}>{data.label}</span>
+      <span className={styles.pieTooltipVal}>{data.count} incidents</span>
+    </div>
+  )
+}
+
+function CategoryDetailPanel({ category, data, thana, onClose }) {
+  const totalIncidents = data.reduce((sum, d) => sum + d.count, 0)
+  const selected = data.find(d => d.key === category)
+  if (!selected) return null
+
+  const contribution = totalIncidents > 0 ? ((selected.count / totalIncidents) * 100).toFixed(1) : 0
+  const riskPct = Math.min(selected.score, 100)
+  const riskColor = riskPct >= 60 ? '#ef4444' : riskPct >= 30 ? '#eab308' : '#3b82f6'
+
+  return (
+    <div className={`card ${styles.detailPanel}`}>
+      <div className={styles.detailPanelHeader}>
+        <div>
+          <p className={styles.detailPanelTitle}>{CATEGORY_LABELS[category] || category}</p>
+          <p className={styles.detailPanelSub}>{thana} — Category Analysis</p>
+        </div>
+        <button className={styles.closeBtn} onClick={onClose}>&times;</button>
+      </div>
+
+      <div className={styles.detailStats}>
+        <div className={styles.detailStat}>
+          <span className={styles.detailStatVal}>{selected.count}</span>
+          <span className={styles.detailStatLabel}>Total Incidents</span>
+        </div>
+        <div className={styles.detailStat}>
+          <span className={styles.detailStatVal} style={{ color: riskColor }}>{contribution}%</span>
+          <span className={styles.detailStatLabel}>Contribution</span>
+        </div>
+        <div className={styles.detailStat}>
+          <span className={styles.detailStatVal} style={{ color: riskColor }}>{selected.score}</span>
+          <span className={styles.detailStatLabel}>Risk Score</span>
+        </div>
+      </div>
+
+      <div className={styles.detailDivider} />
+
+      <p className={styles.detailSectionTitle}>Risk Assessment</p>
+      <div className={styles.detailRiskBar}>
+        <div className={styles.detailRiskTrack}>
+          <div className={styles.detailRiskFill} style={{ width: `${riskPct}%`, background: riskColor }} />
+        </div>
+        <span className={styles.detailRiskLabel} style={{ color: riskColor }}>{riskPct >= 60 ? 'High' : riskPct >= 30 ? 'Medium' : 'Low'} Risk</span>
+      </div>
+
+      <p className={styles.detailSectionTitle}>AI Insight</p>
+      <p className={styles.detailText}>
+        {CATEGORY_LABELS[category] || category} accounts for {contribution}% of all incidents in {thana}.
+        {selected.count > 3
+          ? ` This is a significant contributor to the area's overall risk profile and requires attention.`
+          : ` While not the dominant risk factor, it contributes to the cumulative risk.`}
+      </p>
+
+      <p className={styles.detailSectionTitle}>Recommendation</p>
+      <p className={styles.detailText}>
+        {riskPct >= 60
+          ? `Prioritize ${CATEGORY_LABELS[category]?.toLowerCase() || category} mitigation efforts. Consider increasing monitoring and preventive measures in this area.`
+          : riskPct >= 30
+          ? `Monitor ${CATEGORY_LABELS[category]?.toLowerCase() || category} patterns. Review preventive measures periodically.`
+          : `Continue routine monitoring. No immediate action required.`}
+      </p>
+    </div>
+  )
+}
+
 export default function AreaIntelligence() {
   const navigate = useNavigate()
   const [profiles, setProfiles] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState(null)
 
   useEffect(() => {
     fetchAreaProfiles()
@@ -47,11 +126,19 @@ export default function AreaIntelligence() {
 
   const sorted = [...profiles].sort((a, b) => b.riskScore - a.riskScore)
   const selectedProfile = profiles.find(p => p.thana === selected?.thana)
+
   const catEntries = selectedProfile
     ? Object.entries(selectedProfile.categoryStats || {})
         .filter(([, v]) => v.count > 0)
         .sort(([, a], [, b]) => b.score - a.score)
     : []
+
+  const pieData = catEntries.map(([key, data]) => ({
+    key,
+    label: CATEGORY_LABELS[key] || key,
+    count: data.count,
+    score: data.score,
+  }))
 
   const getCoords = (thana) => THANA_COORDS[thana] || DHAKA_CENTER
 
@@ -79,7 +166,7 @@ export default function AreaIntelligence() {
                   <tr
                     key={t.thana}
                     className={`${styles.row} ${selected?.thana === t.thana ? styles.rowSelected : ''}`}
-                    onClick={() => setSelected(t)}
+                    onClick={() => { setSelected(t); setSelectedCategory(null) }}
                     onDoubleClick={() => navigate(`/areas/${encodeURIComponent(t.thana)}`)}
                   >
                     <td className={styles.rankCell}>
@@ -130,7 +217,7 @@ export default function AreaIntelligence() {
                       weight: selected?.thana === t.thana ? 2.5 : 1.2,
                       opacity: 0.9,
                     }}
-                    eventHandlers={{ click: () => setSelected(t) }}
+                    eventHandlers={{ click: () => { setSelected(t); setSelectedCategory(null) } }}
                   >
                     <Popup>
                       <div style={{ padding: 4, minWidth: 160 }}>
@@ -165,7 +252,6 @@ export default function AreaIntelligence() {
               })}
             </MapContainer>
           </div>
-          {/* Legend */}
           <div className={styles.legendRow}>
             {Object.entries(RISK_COLOR).map(([level, color]) => (
               <div key={level} className={styles.legendItem}>
@@ -205,40 +291,57 @@ export default function AreaIntelligence() {
               </div>
 
               <div className={styles.sectionDivider} />
-              <p className={styles.sectionLabel}>Category Risk Breakdown</p>
-              {catEntries.length > 0 ? (
-                <div className={styles.catList}>
-                  {catEntries.map(([cat, data]) => {
-                    const pct = Math.min(data.score, 100)
-                    const barColor = pct >= 60 ? '#ef4444' : pct >= 30 ? '#eab308' : '#3b82f6'
-                    return (
-                      <div key={cat} className={styles.catRow}>
-                        <span className={styles.catName}>{CATEGORY_LABELS[cat] || cat}</span>
-                        <div className={styles.catTrack}>
-                          <div className={styles.catFill} style={{ width: `${pct}%`, background: barColor }} />
-                        </div>
-                        <span className={styles.catCount}>{data.count}</span>
-                      </div>
-                    )
-                  })}
+              <p className={styles.sectionLabel}>Category Risk Distribution</p>
+
+              {pieData.length > 0 ? (
+                <div className={styles.pieSection}>
+                  <div className={styles.pieWrap}>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={pieData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={80}
+                          paddingAngle={2}
+                          dataKey="count"
+                          nameKey="label"
+                          onClick={(_, index) => {
+                            const item = pieData[index]
+                            setSelectedCategory(item.key === selectedCategory ? null : item.key)
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {pieData.map((_, i) => (
+                            <Cell
+                              key={i}
+                              fill={PIE_COLORS[i % PIE_COLORS.length]}
+                              opacity={selectedCategory && pieData[i].key !== selectedCategory ? 0.3 : 1}
+                              stroke="none"
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className={styles.pieLegend}>
+                    {pieData.map((d, i) => (
+                      <button
+                        key={d.key}
+                        className={`${styles.pieLegendItem} ${selectedCategory === d.key ? styles.pieLegendActive : ''}`}
+                        onClick={() => setSelectedCategory(d.key === selectedCategory ? null : d.key)}
+                      >
+                        <span className={styles.pieLegendDot} style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                        <span className={styles.pieLegendLabel}>{d.label}</span>
+                        <span className={styles.pieLegendCount}>{d.count}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <p className={styles.noneText}>No incident data.</p>
-              )}
-
-              {selectedProfile.infraIssues?.length > 0 && (
-                <>
-                  <div className={styles.sectionDivider} />
-                  <p className={styles.sectionLabel}>Infrastructure Concerns</p>
-                  {selectedProfile.infraIssues.slice(0, 3).map((inf, i) => (
-                    <div key={i} className={styles.catRow}>
-                      <span className={styles.catName}>{inf.damageType || inf.category}</span>
-                      <span className={`badge badge-${(inf.severityLevel || 'low').toLowerCase()}`} style={{ fontSize: 10 }}>
-                        {inf.severityLevel}
-                      </span>
-                    </div>
-                  ))}
-                </>
               )}
             </div>
           ) : (
@@ -247,17 +350,27 @@ export default function AreaIntelligence() {
             </div>
           )}
 
+          {/* Category Detail Panel */}
+          {selectedCategory && pieData.length > 0 && (
+            <CategoryDetailPanel
+              category={selectedCategory}
+              data={pieData}
+              thana={selectedProfile?.thana}
+              onClose={() => setSelectedCategory(null)}
+            />
+          )}
+
           <div className={`card ${styles.scaleCard}`}>
             <p className={styles.sectionLabel} style={{ marginBottom: 10 }}>Risk Score Guide</p>
             {[
-              { range: '60–100', label: 'High',  color: '#ef4444', desc: 'Elevated incident levels' },
-              { range: '30–59',  label: 'Medium', color: '#eab308', desc: 'Moderate incident levels' },
-              { range: '0–29',   label: 'Low',   color: '#3b82f6', desc: 'Lower incident levels' },
+              { range: '60-100', label: 'High',  color: '#ef4444', desc: 'Elevated incident levels' },
+              { range: '30-59',  label: 'Medium', color: '#eab308', desc: 'Moderate incident levels' },
+              { range: '0-29',   label: 'Low',   color: '#3b82f6', desc: 'Lower incident levels' },
             ].map(({ range, label, color, desc }) => (
               <div key={range} className={styles.scaleRow}>
                 <span className={styles.scaleDot} style={{ background: color }} />
                 <div className={styles.scaleText}>
-                  <span className={styles.scaleRange} style={{ color }}>{range} — {label}</span>
+                  <span className={styles.scaleRange} style={{ color }}>{range} -- {label}</span>
                   <span className={styles.scaleDesc}>{desc}</span>
                 </div>
               </div>
