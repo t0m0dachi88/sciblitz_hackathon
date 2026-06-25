@@ -4,7 +4,7 @@
 
 ### Overview
 
-NCDN-CIP is a simulated but realistic **AI-driven urban safety and infrastructure management system** designed to help authorities and citizens collaboratively identify, analyze, and prioritize infrastructure problems and public safety incidents.
+UrbanEye is a simulated but realistic **AI-driven urban safety and infrastructure management system** designed to help authorities and citizens collaboratively identify, analyze, and prioritize infrastructure problems and public safety incidents.
 
 The system combines **citizen reporting, AI-based analysis, and an authority (admin) verification layer** to simulate how smart cities could manage infrastructure and incident response at scale.
 
@@ -32,7 +32,7 @@ Authorities typically struggle to identify:
 
 ## Solution
 
-NCDN-CIP solves this by building a **centralized AI-assisted decision support system** that:
+UrbanEye solves this by building a **centralized AI-assisted decision support system** that:
 
 1. Collects citizen-reported infrastructure and incident data
 2. Uses AI to analyze severity and categorize issues
@@ -279,7 +279,7 @@ For the hackathon, this project should be presented as:
 
 ## Conclusion
 
-NCDN-CIP MVP demonstrates a complete end-to-end system where AI assists humans in understanding urban infrastructure conditions and prioritizing actions, while maintaining human authority control through an admin verification layer.
+UrbanEye MVP demonstrates a complete end-to-end system where AI assists humans in understanding urban infrastructure conditions and prioritizing actions, while maintaining human authority control through an admin verification layer.
 
 The system is designed to be both **hackathon-ready and scalable into a real-world smart city solution.**
  MVP (Hackathon Version)
@@ -288,7 +288,7 @@ The system is designed to be both **hackathon-ready and scalable into a real-wor
 
 ### Overview
 
-NCDN-CIP is a simulated but realistic **AI-driven urban safety and infrastructure management system** designed to help authorities and citizens collaboratively identify, analyze, and prioritize infrastructure problems and public safety incidents.
+UrbanEye is a simulated but realistic **AI-driven urban safety and infrastructure management system** designed to help authorities and citizens collaboratively identify, analyze, and prioritize infrastructure problems and public safety incidents.
 
 The system combines **citizen reporting, AI-based analysis, and an authority (admin) verification layer** to simulate how smart cities could manage infrastructure and incident response at scale.
 
@@ -316,7 +316,7 @@ Authorities typically struggle to identify:
 
 ## Solution
 
-NCDN-CIP solves this by building a **centralized AI-assisted decision support system** that:
+UrbanEye solves this by building a **centralized AI-assisted decision support system** that:
 
 1. Collects citizen-reported infrastructure and incident data
 2. Uses AI to analyze severity and categorize issues
@@ -563,6 +563,6 @@ For the hackathon, this project should be presented as:
 
 ## Conclusion
 
-NCDN-CIP MVP demonstrates a complete end-to-end system where AI assists humans in understanding urban infrastructure conditions and prioritizing actions, while maintaining human authority control through an admin verification layer.
+UrbanEye MVP demonstrates a complete end-to-end system where AI assists humans in understanding urban infrastructure conditions and prioritizing actions, while maintaining human authority control through an admin verification layer.
 
 The system is designed to be both **hackathon-ready and scalable into a real-world smart city solution.**
