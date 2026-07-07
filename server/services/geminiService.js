@@ -33,15 +33,13 @@ export const analyzeImageWithGemini = async (imagePath, mimeType, address = '') 
     ];
 
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         contents,
-        config: {
-            responseMimeType: "application/json",
-        }
     });
 
-    const resultText = response.text;
-    const resultJson = JSON.parse(resultText);
+    const resultText = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const cleaned = resultText.replace(/```(json)?/g, '').trim();
+    const resultJson = JSON.parse(cleaned);
 
     return resultJson;
   } catch (error) {
