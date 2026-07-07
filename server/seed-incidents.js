@@ -6,7 +6,16 @@ import AreaIntelligence from './models/AreaIntelligence.js';
 
 dotenv.config();
 
-const THANAS = ['Dhanmondi','Gulshan','Mirpur','Uttara','Mohammadpur','Motijheel','Rampura','Khilgaon','Pallabi','Cantonment','Tejgaon','Lalbagh'];
+const THANAS = [
+  'Ramna','Shahbagh','Dhanmondi','New Market','Hazaribagh','Kalabagan',
+  'Lalbagh','Kotwali','Bangshal','Chakbazar','Kamrangirchar',
+  'Motijheel','Paltan','Sabujbagh','Khilgaon','Rampura','Mugdha','Shahjahanpur',
+  'Wari','Sutrapur','Demra','Shyampur','Jatrabari','Kadamtali','Gendaria',
+  'Tejgaon','Tejgaon Industrial Area','Mohammadpur','Adabor','Sher-e-Bangla Nagar','Hatirjheel',
+  'Mirpur Model','Pallabi','Kafrul','Shah Ali','Rupnagar','Bhashantek','Darus Salam',
+  'Gulshan','Badda','Khilkhet','Cantonment','Vatara','Banani',
+  'Uttara East','Uttara West','Airport','Turag','Dakshinkhan','Uttarkhan',
+];
 
 const INCIDENT_TYPES = ['theft','burglary','fire_incident','road_accident','drug_activity','public_safety_hazard','vandalism','other'];
 const SEVERITIES = ['Low','Medium','High','Critical'];
@@ -83,24 +92,63 @@ const DESCRIPTIONS = {
 
 function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+function generateProfiles() {
+  const baseProfiles = {
+    // High-activity areas
+    'Mirpur Model':    { theft: 0.25, burglary: 0.1, fire_incident: 0.1, road_accident: 0.35, drug_activity: 0.05, public_safety_hazard: 0.05, vandalism: 0.05, other: 0.05, count: 24, highSev: 0.4 },
+    Pallabi:           { theft: 0.2, burglary: 0.1, fire_incident: 0.1, road_accident: 0.25, drug_activity: 0.1, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 20, highSev: 0.35 },
+    Gulshan:           { theft: 0.2, burglary: 0.15, fire_incident: 0.05, road_accident: 0.15, drug_activity: 0.15, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 20, highSev: 0.25 },
+    Dhanmondi:         { theft: 0.2, burglary: 0.1, fire_incident: 0.1, road_accident: 0.2, drug_activity: 0.1, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 22, highSev: 0.3 },
+    'Uttara East':     { theft: 0.2, burglary: 0.1, fire_incident: 0.05, road_accident: 0.25, drug_activity: 0.1, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 18, highSev: 0.3 },
+    'Uttara West':     { theft: 0.18, burglary: 0.08, fire_incident: 0.05, road_accident: 0.22, drug_activity: 0.12, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.15, count: 16, highSev: 0.25 },
+    Mohammadpur:       { theft: 0.2, burglary: 0.1, fire_incident: 0.1, road_accident: 0.2, drug_activity: 0.15, public_safety_hazard: 0.05, vandalism: 0.1, other: 0.1, count: 18, highSev: 0.35 },
+    Motijheel:         { theft: 0.3, burglary: 0.1, fire_incident: 0.05, road_accident: 0.2, drug_activity: 0.05, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 18, highSev: 0.3 },
+    Lalbagh:           { theft: 0.15, burglary: 0.1, fire_incident: 0.1, road_accident: 0.15, drug_activity: 0.25, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.05, count: 18, highSev: 0.4 },
+    Khilgaon:          { theft: 0.15, burglary: 0.1, fire_incident: 0.1, road_accident: 0.2, drug_activity: 0.15, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 16, highSev: 0.3 },
+    Rampura:           { theft: 0.15, burglary: 0.05, fire_incident: 0.1, road_accident: 0.2, drug_activity: 0.15, public_safety_hazard: 0.15, vandalism: 0.1, other: 0.1, count: 14, highSev: 0.25 },
+    Tejgaon:           { theft: 0.2, burglary: 0.1, fire_incident: 0.15, road_accident: 0.15, drug_activity: 0.05, public_safety_hazard: 0.1, vandalism: 0.15, other: 0.1, count: 16, highSev: 0.3 },
+    Cantonment:        { theft: 0.1, burglary: 0.05, fire_incident: 0.1, road_accident: 0.25, drug_activity: 0.05, public_safety_hazard: 0.15, vandalism: 0.05, other: 0.25, count: 12, highSev: 0.2 },
+    Badda:             { theft: 0.2, burglary: 0.1, fire_incident: 0.1, road_accident: 0.2, drug_activity: 0.1, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 14, highSev: 0.3 },
+    Kafrul:            { theft: 0.18, burglary: 0.08, fire_incident: 0.08, road_accident: 0.22, drug_activity: 0.1, public_safety_hazard: 0.12, vandalism: 0.1, other: 0.12, count: 14, highSev: 0.28 },
+    Adabor:            { theft: 0.15, burglary: 0.08, fire_incident: 0.12, road_accident: 0.2, drug_activity: 0.1, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.15, count: 12, highSev: 0.25 },
+    Banani:            { theft: 0.22, burglary: 0.12, fire_incident: 0.05, road_accident: 0.18, drug_activity: 0.08, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.15, count: 14, highSev: 0.22 },
+    Wari:              { theft: 0.2, burglary: 0.1, fire_incident: 0.08, road_accident: 0.2, drug_activity: 0.12, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 14, highSev: 0.28 },
+    Sutrapur:          { theft: 0.22, burglary: 0.12, fire_incident: 0.08, road_accident: 0.18, drug_activity: 0.1, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 12, highSev: 0.3 },
+    Jatrabari:         { theft: 0.18, burglary: 0.1, fire_incident: 0.1, road_accident: 0.22, drug_activity: 0.1, public_safety_hazard: 0.12, vandalism: 0.08, other: 0.1, count: 14, highSev: 0.32 },
+  };
+
+  // For thanas without explicit profiles, generate reasonable defaults
+  for (const thana of THANAS) {
+    if (!baseProfiles[thana]) {
+      const count = 8 + Math.floor(Math.random() * 14);
+      const highSev = 0.2 + Math.random() * 0.2;
+      baseProfiles[thana] = {
+        theft: 0.15 + Math.random() * 0.1,
+        burglary: 0.05 + Math.random() * 0.1,
+        fire_incident: 0.05 + Math.random() * 0.1,
+        road_accident: 0.15 + Math.random() * 0.15,
+        drug_activity: 0.05 + Math.random() * 0.1,
+        public_safety_hazard: 0.08 + Math.random() * 0.08,
+        vandalism: 0.05 + Math.random() * 0.1,
+        other: 0.1 + Math.random() * 0.1,
+        count,
+        highSev,
+      };
+      // Normalize weights to sum to ~1
+      const weights = Object.entries(baseProfiles[thana])
+        .filter(([k]) => INCIDENT_TYPES.includes(k));
+      const sum = weights.reduce((s, [, v]) => s + v, 0);
+      for (const [k, v] of weights) {
+        baseProfiles[thana][k] = v / sum;
+      }
+    }
+  }
+  return baseProfiles;
+}
+
 function generateIncidents() {
   const incidents = [];
-
-  // Define distinct risk profiles for each thana
-  const profiles = {
-    Mirpur:       { theft: 0.25, burglary: 0.1, fire_incident: 0.1, road_accident: 0.35, drug_activity: 0.05, public_safety_hazard: 0.05, vandalism: 0.05, other: 0.05, count: 28, highSev: 0.4 },
-    Gulshan:      { theft: 0.2,  burglary: 0.15, fire_incident: 0.05, road_accident: 0.15, drug_activity: 0.15, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 20, highSev: 0.25 },
-    Dhanmondi:    { theft: 0.2,  burglary: 0.1, fire_incident: 0.1, road_accident: 0.2, drug_activity: 0.1, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 22, highSev: 0.3 },
-    Uttara:       { theft: 0.2,  burglary: 0.1, fire_incident: 0.05, road_accident: 0.25, drug_activity: 0.1, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 20, highSev: 0.3 },
-    Mohammadpur:  { theft: 0.2,  burglary: 0.1, fire_incident: 0.1, road_accident: 0.2, drug_activity: 0.15, public_safety_hazard: 0.05, vandalism: 0.1, other: 0.1, count: 18, highSev: 0.35 },
-    Motijheel:    { theft: 0.3,  burglary: 0.1, fire_incident: 0.05, road_accident: 0.2, drug_activity: 0.05, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 18, highSev: 0.3 },
-    Lalbagh:      { theft: 0.15, burglary: 0.1, fire_incident: 0.1, road_accident: 0.15, drug_activity: 0.25, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.05, count: 18, highSev: 0.4 },
-    Khilgaon:     { theft: 0.15, burglary: 0.1, fire_incident: 0.1, road_accident: 0.2, drug_activity: 0.15, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 16, highSev: 0.3 },
-    Rampura:      { theft: 0.15, burglary: 0.05, fire_incident: 0.1, road_accident: 0.2, drug_activity: 0.15, public_safety_hazard: 0.15, vandalism: 0.1, other: 0.1, count: 14, highSev: 0.25 },
-    Tejgaon:      { theft: 0.2,  burglary: 0.1, fire_incident: 0.15, road_accident: 0.15, drug_activity: 0.05, public_safety_hazard: 0.1, vandalism: 0.15, other: 0.1, count: 16, highSev: 0.3 },
-    Pallabi:      { theft: 0.15, burglary: 0.1, fire_incident: 0.1, road_accident: 0.25, drug_activity: 0.1, public_safety_hazard: 0.1, vandalism: 0.1, other: 0.1, count: 14, highSev: 0.25 },
-    Cantonment:   { theft: 0.1,  burglary: 0.05, fire_incident: 0.1, road_accident: 0.25, drug_activity: 0.05, public_safety_hazard: 0.15, vandalism: 0.05, other: 0.25, count: 12, highSev: 0.2 },
-  };
+  const profiles = generateProfiles();
 
   const now = Date.now();
 

@@ -1,7 +1,16 @@
 import Incident from '../models/Incident.js';
 import Report from '../models/Report.js';
 
-const THANAS = ['Dhanmondi','Gulshan','Mirpur','Uttara','Mohammadpur','Motijheel','Rampura','Khilgaon','Pallabi','Cantonment','Tejgaon','Lalbagh'];
+const THANAS = [
+  'Ramna','Shahbagh','Dhanmondi','New Market','Hazaribagh','Kalabagan',
+  'Lalbagh','Kotwali','Bangshal','Chakbazar','Kamrangirchar',
+  'Motijheel','Paltan','Sabujbagh','Khilgaon','Rampura','Mugdha','Shahjahanpur',
+  'Wari','Sutrapur','Demra','Shyampur','Jatrabari','Kadamtali','Gendaria',
+  'Tejgaon','Tejgaon Industrial Area','Mohammadpur','Adabor','Sher-e-Bangla Nagar','Hatirjheel',
+  'Mirpur Model','Pallabi','Kafrul','Shah Ali','Rupnagar','Bhashantek','Darus Salam',
+  'Gulshan','Badda','Khilkhet','Cantonment','Vatara','Banani',
+  'Uttara East','Uttara West','Airport','Turag','Dakshinkhan','Uttarkhan',
+];
 
 const SEVERITY_POINTS = { Critical: 25, High: 15, Medium: 8, Low: 3 };
 const INCIDENT_TYPES = ['theft','burglary','fire_incident','road_accident','drug_activity','public_safety_hazard','vandalism','other'];

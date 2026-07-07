@@ -9,47 +9,124 @@ dotenv.config();
 
 const DUMMY_IMAGE = '/uploads/placeholder.jpg';
 
-const THANAS = ['Dhanmondi','Gulshan','Mirpur','Uttara','Mohammadpur','Motijheel','Rampura','Khilgaon','Pallabi','Cantonment','Tejgaon','Lalbagh'];
-
-const REPORTS_DATA = [
-  // Critical — pending
-  { thana: 'Mirpur',      category: 'Road Damage',       severityLevel: 'Critical', damageType: 'Large pothole cluster, sub-base exposed',                    description: 'Multiple large potholes with exposed sub-base causing vehicle damage and pedestrian hazard.',                                          hoursAgo: 2,  status: 'pending' },
-  { thana: 'Lalbagh',     category: 'Flooding',          severityLevel: 'Critical', damageType: 'Severe waterlogging, road submerged',                           description: 'Road completely submerged with 60cm water depth blocking all vehicular movement.',                                                      hoursAgo: 3,  status: 'pending' },
-  { thana: 'Dhanmondi',   category: 'Bridge',            severityLevel: 'Critical', damageType: 'Bridge railing collapse, structural crack',                     description: 'Pedestrian bridge railing collapsed on east side with visible cracks in the deck slab.',                                              hoursAgo: 5,  status: 'verified' },
-  { thana: 'Mohammadpur', category: 'Road Damage',       severityLevel: 'Critical', damageType: 'Full road collapse, utility trench failure',                    description: 'Road completely collapsed over failed utility trench, 4m wide gap blocking entire road.',                                              hoursAgo: 8,  status: 'pending' },
-  // High — mixed
-  { thana: 'Khilgaon',    category: 'Electrical Hazard', severityLevel: 'High',     damageType: 'Downed power line on roadway',                                  description: 'Electric pole collapsed after storm, live wire on road creating immediate electrocution risk.',                                        hoursAgo: 6,  status: 'pending' },
-  { thana: 'Motijheel',   category: 'Road Damage',       severityLevel: 'High',     damageType: 'Road surface collapse, sinkhole forming',                        description: 'Significant road surface collapse indicating underground pipe failure or erosion.',                                                    hoursAgo: 10, status: 'pending' },
-  { thana: 'Gulshan',     category: 'Bridge',            severityLevel: 'High',     damageType: 'Retaining wall crack, partial collapse risk',                    description: 'Retaining wall along canal showing 15cm wide cracks with soil displacement.',                                                         hoursAgo: 12, status: 'verified' },
-  { thana: 'Pallabi',     category: 'Flooding',          severityLevel: 'High',     damageType: 'Drainage system overflow, street flood',                          description: 'Storm drainage blocked causing 40cm water accumulation across 200m of main road.',                                                    hoursAgo: 15, status: 'rejected',   adminNote: 'Area already scheduled for drainage maintenance. Will be addressed next week.' },
-  { thana: 'Mirpur',      category: 'Flooding',          severityLevel: 'High',     damageType: 'Low-lying road flood, culvert blocked',                          description: 'Culvert completely blocked by debris causing flooding of 300m road segment.',                                                        hoursAgo: 20, status: 'resolved' },
-  { thana: 'Tejgaon',     category: 'Bridge',            severityLevel: 'High',     damageType: 'Expansion joint failure, deck cracking',                         description: 'Bridge expansion joint completely failed causing 3cm gap in deck surface at midspan.',                                                hoursAgo: 48, status: 'resolved' },
-  { thana: 'Lalbagh',     category: 'Bridge',            severityLevel: 'High',     damageType: 'Boundary wall collapse, road obstruction',                        description: 'Old boundary wall collapsed blocking one lane of road with debris pile.',                                                              hoursAgo: 30, status: 'verified' },
-  // Medium — mixed
-  { thana: 'Tejgaon',     category: 'Road Damage',       severityLevel: 'Medium',   damageType: 'Surface cracking, rutting on main arterial',                      description: 'Longitudinal cracks and deep rutting on heavily trafficked industrial zone road.',                                                    hoursAgo: 18, status: 'pending' },
-  { thana: 'Rampura',     category: 'Electrical Hazard', severityLevel: 'Medium',   damageType: 'Transformer leakage, exposed wiring on pole',                    description: 'Transformer oil leaking with exposed wiring visible at 3m height posing fire risk.',                                                  hoursAgo: 40, status: 'resolved' },
-  { thana: 'Uttara',      category: 'Road Damage',       severityLevel: 'Medium',   damageType: 'Asphalt delamination, surface failure',                          description: 'Asphalt surface layer separating from base course over 50m stretch near sector 7.',                                                    hoursAgo: 36, status: 'verified' },
-  { thana: 'Mohammadpur', category: 'Bridge',            severityLevel: 'Medium',   damageType: 'Footbridge beam corrosion, unsafe crossing',                     description: 'Pedestrian footbridge main beams show heavy corrosion with partial section loss.',                                                     hoursAgo: 26, status: 'rejected',   adminNote: 'Inspection scheduled for next month. Not an immediate safety risk.' },
-  { thana: 'Khilgaon',    category: 'Flooding',          severityLevel: 'Medium',   damageType: 'Stormwater backup, residential area flood',                      description: 'Stormwater drain backing up flooding residential lane to 25cm depth.',                                                                hoursAgo: 50, status: 'pending' },
-  { thana: 'Pallabi',     category: 'Road Damage',       severityLevel: 'Medium',   damageType: 'Pothole cluster, surface deterioration',                         description: 'Cluster of 8 potholes in 100m stretch causing traffic slowdown and vehicle damage.',                                                  hoursAgo: 60, status: 'verified' },
-  { thana: 'Motijheel',   category: 'Road Damage',       severityLevel: 'Medium',   damageType: 'Road shoulder erosion, pavement edge failure',                   description: 'Road shoulder erosion with 15cm edge drop along 30m stretch near commercial area.',                                                   hoursAgo: 70, status: 'pending' },
-  // Low — mixed
-  { thana: 'Cantonment',  category: 'Road Damage',       severityLevel: 'Low',      damageType: 'Minor pothole, lane marking erosion',                            description: 'Small pothole formation (20cm diameter) and worn lane markings on secondary road.',                                                    hoursAgo: 45, status: 'pending' },
-  { thana: 'Dhanmondi',   category: 'Electrical Hazard', severityLevel: 'Low',      damageType: 'Street light failure, junction dark',                            description: 'Three consecutive street lights non-functional at major pedestrian junction.',                                                        hoursAgo: 80, status: 'resolved' },
-  { thana: 'Gulshan',     category: 'Road Damage',       severityLevel: 'Low',      damageType: 'Pavement edge crumbling, shoulder erosion',                       description: 'Road shoulder crumbling with 10cm edge drop posing risk to cyclists.',                                                                hoursAgo: 55, status: 'pending' },
-  // Extra reports to increase duplicate counts for same thana+category
-  { thana: 'Mirpur',      category: 'Road Damage',       severityLevel: 'High',     damageType: 'Deep pothole on Mirpur Road near bus stop',                       description: 'Deep pothole approximately 30cm wide and 15cm deep on main road near local bus stop.',                                                hoursAgo: 4,  status: 'pending' },
-  { thana: 'Mirpur',      category: 'Road Damage',       severityLevel: 'Medium',   damageType: 'Road surface cracking, secondary road',                           description: 'Multiple cracks along 50m stretch of residential road in Mirpur-12.',                                                                hoursAgo: 14, status: 'pending' },
-  { thana: 'Motijheel',   category: 'Road Damage',       severityLevel: 'High',     damageType: 'Manhole cover missing, open drain on road',                       description: 'Manhole cover stolen leaving open 1m deep drain on busy commercial road.',                                                            hoursAgo: 7,  status: 'pending' },
-  { thana: 'Motijheel',   category: 'Road Damage',       severityLevel: 'Medium',   damageType: 'Speed breaker damage, road unevenness',                           description: 'Speed breaker completely worn down leaving uneven surface and exposed bolts on road.',                                                 hoursAgo: 22, status: 'verified' },
-  { thana: 'Dhanmondi',   category: 'Flooding',          severityLevel: 'Medium',   damageType: 'Waterlogging at road intersection',                               description: 'Water accumulation at road intersection after rain, up to 20cm deep.',                                                                hoursAgo: 16, status: 'pending' },
-  { thana: 'Gulshan',     category: 'Flooding',          severityLevel: 'High',     damageType: 'Storm drain overflow, road flooded',                              description: 'Storm drain overflow causing 30cm flooding of main road in Gulshan-2.',                                                               hoursAgo: 9,  status: 'pending' },
-  { thana: 'Uttara',      category: 'Bridge',            severityLevel: 'High',     damageType: 'Footbridge railing loose, safety hazard',                        description: 'Footbridge railing bolts rusted and loose, railing unstable for pedestrians.',                                                         hoursAgo: 25, status: 'pending' },
-  { thana: 'Lalbagh',     category: 'Flooding',          severityLevel: 'Critical', damageType: 'Severe waterlogging, residential area flooded',                  description: 'Waterlogging in residential area with 50cm water depth, homes at risk of flooding.',                                                   hoursAgo: 1,  status: 'pending' },
-  { thana: 'Khilgaon',    category: 'Road Damage',       severityLevel: 'Critical', damageType: 'Major road crack, lane separation hazard',                       description: 'Major crack across full road width with 5cm lane separation creating serious accident risk.',                                          hoursAgo: 3,  status: 'verified' },
-  { thana: 'Rampura',     category: 'Flooding',          severityLevel: 'Medium',   damageType: 'Drainage blockage, street waterlogging',                          description: 'Blocked drainage system causing waterlogging on main market road.',                                                                    hoursAgo: 11, status: 'pending' },
-  { thana: 'Cantonment',  category: 'Electrical Hazard', severityLevel: 'High',     damageType: 'Transformer sparking, fire risk',                                description: 'Transformer sparking intermittently near residential area, risk of fire.',                                                            hoursAgo: 5,  status: 'pending' },
+const THANAS = [
+  'Ramna','Shahbagh','Dhanmondi','New Market','Hazaribagh','Kalabagan',
+  'Lalbagh','Kotwali','Bangshal','Chakbazar','Kamrangirchar',
+  'Motijheel','Paltan','Sabujbagh','Khilgaon','Rampura','Mugdha','Shahjahanpur',
+  'Wari','Sutrapur','Demra','Shyampur','Jatrabari','Kadamtali','Gendaria',
+  'Tejgaon','Tejgaon Industrial Area','Mohammadpur','Adabor','Sher-e-Bangla Nagar','Hatirjheel',
+  'Mirpur Model','Pallabi','Kafrul','Shah Ali','Rupnagar','Bhashantek','Darus Salam',
+  'Gulshan','Badda','Khilkhet','Cantonment','Vatara','Banani',
+  'Uttara East','Uttara West','Airport','Turag','Dakshinkhan','Uttarkhan',
 ];
+
+const CATEGORIES = ['Road Damage','Bridge Damage','Flooding','Electrical Hazard','Structural Damage','Other'];
+const SEVERITIES = ['Critical','High','Medium','Low'];
+
+const DAMAGE_TYPES = {
+  'Road Damage': [
+    'Large pothole cluster, sub-base exposed', 'Road surface collapse, sinkhole forming',
+    'Asphalt delamination, surface failure', 'Deep pothole on main arterial road',
+    'Surface cracking and rutting', 'Manhole cover missing, open drain on road',
+    'Speed breaker damage, road unevenness', 'Major road crack, lane separation hazard',
+  ],
+  'Bridge Damage': [
+    'Bridge railing collapse, structural crack', 'Retaining wall crack, partial collapse risk',
+    'Expansion joint failure, deck cracking', 'Footbridge beam corrosion, unsafe crossing',
+    'Boundary wall collapse, road obstruction', 'Support column erosion, load bearing reduced',
+  ],
+  'Flooding': [
+    'Severe waterlogging, road submerged', 'Drainage system overflow, street flood',
+    'Storm drain overflow, road flooded', 'Waterlogging at road intersection',
+    'Culvert blocked, low-lying area flood', 'Stormwater backup, residential area flood',
+  ],
+  'Electrical Hazard': [
+    'Downed power line on roadway', 'Transformer leakage, exposed wiring on pole',
+    'Street light failure, junction dark', 'Transformer sparking, fire risk',
+    'Illegal wire tap on utility pole', 'Electrical box cover missing, live wires',
+  ],
+  'Structural Damage': [
+    'Boundary wall collapse risk', 'Building facade cracks, falling hazard',
+    'Rooftop water tank structural failure', 'Staircase railing detached',
+    'Foundation settlement, wall cracking', 'Parapet wall unstable, fall risk',
+  ],
+  'Other': [
+    'Open manhole on busy road', 'Unsecured construction site',
+    'Blocked drainage causing local flooding', 'Abandoned vehicle blocking road',
+    'Illegal waste dumping on sidewalk',
+  ],
+};
+
+const DESCRIPTIONS = [
+  'Infrastructure damage reported by local resident. Area shows signs of deterioration requiring immediate attention.',
+  'Multiple complaints received about this location. Damage appears to be worsening over time.',
+  'Emergency repair needed. Current condition poses safety risk to pedestrians and vehicles.',
+  'Scheduled maintenance overdue. Structural assessment recommended before monsoon season.',
+  'Community report with photographic evidence. Damage consistent with infrastructure aging.',
+  'High-traffic area with significant wear. Repair needed to prevent further deterioration.',
+  'Damage likely caused by recent heavy rainfall. Temporary barriers recommended.',
+  'Report verified by local ward councilor. Urgent attention needed for public safety.',
+];
+
+function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function randomLatLng(thana) {
+  const coords = {
+    Ramna: [23.7423, 90.4042], Shahbagh: [23.7380, 90.3957], Dhanmondi: [23.7461, 90.3742],
+    'New Market': [23.7330, 90.3842], Hazaribagh: [23.7346, 90.3644], Kalabagan: [23.7478, 90.3811],
+    Lalbagh: [23.7208, 90.3879], Kotwali: [23.7081, 90.4036], Bangshal: [23.7171, 90.4048],
+    Chakbazar: [23.7185, 90.3941], Kamrangirchar: [23.7161, 90.3662],
+    Motijheel: [23.7330, 90.4174], Paltan: [23.7369, 90.4111], Sabujbagh: [23.7367, 90.4354],
+    Khilgaon: [23.7497, 90.4289], Rampura: [23.7612, 90.4214], Mugdha: [23.7294, 90.4348],
+    Shahjahanpur: [23.7441, 90.4184],
+    Wari: [23.7167, 90.4167], Sutrapur: [23.7111, 90.4186], Demra: [23.7181, 90.5057],
+    Shyampur: [23.6934, 90.4320], Jatrabari: [23.7104, 90.4349], Kadamtali: [23.6923, 90.4497],
+    Gendaria: [23.7029, 90.4253],
+    Tejgaon: [23.7594, 90.3919], 'Tejgaon Industrial Area': [23.7634, 90.4042],
+    Mohammadpur: [23.7658, 90.3581], Adabor: [23.7692, 90.3524],
+    'Sher-e-Bangla Nagar': [23.7621, 90.3785], Hatirjheel: [23.7618, 90.4007],
+    'Mirpur Model': [23.8056, 90.3625], Pallabi: [23.8239, 90.3644], Kafrul: [23.7964, 90.3853],
+    'Shah Ali': [23.8033, 90.3456], Rupnagar: [23.8189, 90.3508], Bhashantek: [23.8041, 90.3934],
+    'Darus Salam': [23.7885, 90.3475],
+    Gulshan: [23.7925, 90.4162], Badda: [23.7844, 90.4258], Khilkhet: [23.8303, 90.4244],
+    Cantonment: [23.8222, 90.4083], Vatara: [23.7978, 90.4339], Banani: [23.7939, 90.4033],
+    'Uttara East': [23.8702, 90.4011], 'Uttara West': [23.8741, 90.3847],
+    Airport: [23.8514, 90.4084], Turag: [23.8906, 90.3812], Dakshinkhan: [23.8678, 90.4319],
+    Uttarkhan: [23.8783, 90.4419],
+  };
+  const c = coords[thana] || [23.75, 90.40];
+  return [c[0] + (Math.random() - 0.5) * 0.01, c[1] + (Math.random() - 0.5) * 0.01];
+}
+
+function generateReports() {
+  const reports = [];
+  const statuses = ['pending','pending','pending','verified','verified','resolved','rejected'];
+  const statusWeights = { pending: 0.5, verified: 0.2, resolved: 0.15, rejected: 0.15 };
+
+  for (const thana of THANAS) {
+    const count = 2 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < count; i++) {
+      const category = randomItem(CATEGORIES);
+      const severityLevel = randomItem(SEVERITIES);
+      const damageType = randomItem(DAMAGE_TYPES[category] || DAMAGE_TYPES['Other']);
+      const [lat, lng] = randomLatLng(thana);
+      const hoursAgo = Math.floor(Math.random() * 168);
+
+      let status = 'pending';
+      const roll = Math.random();
+      if (roll < 0.15) status = 'verified';
+      else if (roll < 0.3) status = 'resolved';
+      else if (roll < 0.4) status = 'rejected';
+
+      reports.push({
+        thana, category, severityLevel, damageType,
+        description: randomItem(DESCRIPTIONS),
+        status, lat, lng, hoursAgo,
+      });
+    }
+  }
+  return reports;
+}
 
 async function seed() {
   try {
@@ -77,13 +154,16 @@ async function seed() {
       console.log('Admin user already exists');
     }
 
-    // Clear existing reports
+    // Clear existing reports and infrastructure
     await Report.deleteMany({});
-    console.log('Cleared existing reports');
+    await mongoose.connection.db.dropCollection('infrastructures').catch(() => {});
+    console.log('Cleared existing reports and infrastructure');
+
+    const REPORTS_DATA = generateReports();
 
     // Insert reports
     const now = Date.now();
-    const reports = REPORTS_DATA.map((r, i) => {
+    const reports = REPORTS_DATA.map((r) => {
       const createdAt = new Date(now - r.hoursAgo * 3600000);
       const reportObj = {
         imageUrl: DUMMY_IMAGE,
@@ -94,10 +174,9 @@ async function seed() {
         description: r.description,
         aiExplanation: r.damageType,
         status: r.status,
-        adminNote: r.adminNote || undefined,
-        lat: null,
-        lng: null,
-        userId: r.status === 'verified' || r.status === 'resolved' || i < 8 ? citizen._id : null,
+        lat: r.lat,
+        lng: r.lng,
+        userId: r.status === 'verified' || r.status === 'resolved' ? citizen._id : null,
         createdAt,
         updatedAt: createdAt,
       };
@@ -109,7 +188,7 @@ async function seed() {
     });
 
     await Report.insertMany(reports);
-    console.log(`Seeded ${reports.length} reports`);
+    console.log(`Seeded ${reports.length} reports across ${THANAS.length} thanas`);
 
     await mongoose.disconnect();
     console.log('Done. Run the app and log in with:');

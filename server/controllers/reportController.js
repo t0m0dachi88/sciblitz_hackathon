@@ -5,18 +5,64 @@ import imagekit from '../config/imagekit.js';
 import fs from 'fs';
 
 const THANA_COORDS = {
-  Dhanmondi:   [23.7461, 90.3742],
-  Gulshan:     [23.7925, 90.4078],
-  Mirpur:      [23.8223, 90.3654],
-  Uttara:      [23.8759, 90.3795],
-  Mohammadpur: [23.7613, 90.3587],
-  Motijheel:   [23.7337, 90.4196],
-  Rampura:     [23.7649, 90.4310],
-  Khilgaon:    [23.7524, 90.4284],
-  Pallabi:     [23.8271, 90.3587],
-  Cantonment:  [23.8009, 90.3982],
-  Tejgaon:     [23.7728, 90.3938],
-  Lalbagh:     [23.7219, 90.3860],
+  // Ramna Division
+  Ramna:            [23.7423, 90.4042],
+  Shahbagh:         [23.7380, 90.3957],
+  Dhanmondi:        [23.7461, 90.3742],
+  'New Market':     [23.7330, 90.3842],
+  Hazaribagh:       [23.7346, 90.3644],
+  Kalabagan:        [23.7478, 90.3811],
+  // Lalbagh Division
+  Lalbagh:          [23.7208, 90.3879],
+  Kotwali:          [23.7081, 90.4036],
+  Bangshal:         [23.7171, 90.4048],
+  Chakbazar:        [23.7185, 90.3941],
+  Kamrangirchar:    [23.7161, 90.3662],
+  // Motijheel Division
+  Motijheel:        [23.7330, 90.4174],
+  Paltan:           [23.7369, 90.4111],
+  Sabujbagh:        [23.7367, 90.4354],
+  Khilgaon:         [23.7497, 90.4289],
+  Rampura:          [23.7612, 90.4214],
+  Mugdha:           [23.7294, 90.4348],
+  Shahjahanpur:     [23.7441, 90.4184],
+  // Wari Division
+  Wari:             [23.7167, 90.4167],
+  Sutrapur:         [23.7111, 90.4186],
+  Demra:            [23.7181, 90.5057],
+  Shyampur:         [23.6934, 90.4320],
+  Jatrabari:        [23.7104, 90.4349],
+  Kadamtali:        [23.6923, 90.4497],
+  Gendaria:         [23.7029, 90.4253],
+  // Tejgaon Division
+  Tejgaon:          [23.7594, 90.3919],
+  'Tejgaon Industrial Area': [23.7634, 90.4042],
+  Mohammadpur:      [23.7658, 90.3581],
+  Adabor:           [23.7692, 90.3524],
+  'Sher-e-Bangla Nagar': [23.7621, 90.3785],
+  Hatirjheel:       [23.7618, 90.4007],
+  // Mirpur Division
+  'Mirpur Model':   [23.8056, 90.3625],
+  Pallabi:          [23.8239, 90.3644],
+  Kafrul:           [23.7964, 90.3853],
+  'Shah Ali':       [23.8033, 90.3456],
+  Rupnagar:         [23.8189, 90.3508],
+  Bhashantek:       [23.8041, 90.3934],
+  'Darus Salam':    [23.7885, 90.3475],
+  // Gulshan Division
+  Gulshan:          [23.7925, 90.4162],
+  Badda:            [23.7844, 90.4258],
+  Khilkhet:         [23.8303, 90.4244],
+  Cantonment:       [23.8222, 90.4083],
+  Vatara:           [23.7978, 90.4339],
+  Banani:           [23.7939, 90.4033],
+  // Uttara Division
+  'Uttara East':    [23.8702, 90.4011],
+  'Uttara West':    [23.8741, 90.3847],
+  Airport:          [23.8514, 90.4084],
+  Turag:            [23.8906, 90.3812],
+  Dakshinkhan:      [23.8678, 90.4319],
+  Uttarkhan:        [23.8783, 90.4419],
 };
 
 export const analyzeReport = async (req, res) => {
