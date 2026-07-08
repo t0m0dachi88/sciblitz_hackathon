@@ -156,11 +156,11 @@ export async function fetchRepairCaseById(repairId) {
   return res.json()
 }
 
-export async function submitRepairEvidence(formData) {
+export async function submitRepairEvidence(data) {
   const res = await fetch(`${REPAIR_BASE}/evidence`, {
     method: 'POST',
-    headers: authHeaders(),
-    body: formData,
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(data),
   })
   if (!res.ok) throw new Error('Failed to submit evidence')
   return res.json()
