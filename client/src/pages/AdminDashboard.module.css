@@ -25,6 +25,25 @@
 .tab:hover { background: var(--bg-hover); color: var(--text-primary); }
 .tabActive { color: var(--accent); border-bottom-color: var(--accent); }
 
+/* Sort bar */
+.sortBar { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.sortIcon { color: var(--text-muted); }
+.sortLabel { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-right: 4px; }
+.sortBtn {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+.sortBtn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sortActive { background: rgba(59,130,246,0.1); color: var(--accent); border-color: rgba(59,130,246,0.3); }
+
 /* Table */
 .tableWrap { flex: 1; overflow-y: auto; }
 .table { width: 100%; border-collapse: collapse; }

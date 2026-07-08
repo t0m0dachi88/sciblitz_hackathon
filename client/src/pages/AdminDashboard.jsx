@@ -1,11 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle, XCircle, Edit2, RotateCcw, ShieldCheck, LogOut, Wrench } from 'lucide-react'
+import { CheckCircle, XCircle, Edit2, RotateCcw, ShieldCheck, LogOut, Wrench, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { fetchReports, updateReport, createRepairCase, fetchRepairCases } from '../api/reports'
 import styles from './AdminDashboard.module.css'
 
 const SEVERITY_OPTIONS = ['Critical', 'High', 'Medium', 'Low']
+const SEVERITY_ORDER = { Critical: 0, High: 1, Medium: 2, Low: 3 }
+
+const SORT_OPTIONS = [
+  { key: 'date-desc',  label: 'Newest First',    by: 'date',  dir: 'desc' },
+  { key: 'date-asc',   label: 'Oldest First',    by: 'date',  dir: 'asc' },
+  { key: 'sev-desc',   label: 'Severity (High→Low)', by: 'severity', dir: 'desc' },
+  { key: 'sev-asc',    label: 'Severity (Low→High)', by: 'severity', dir: 'asc' },
+  { key: 'priority-desc', label: 'Priority (High→Low)', by: 'priority', dir: 'desc' },
+  { key: 'priority-asc',  label: 'Priority (Low→High)', by: 'priority', dir: 'asc' },
+]
 
 function fmtTime(iso) {
   return new Date(iso).toLocaleString('en-GB', {
@@ -22,6 +32,7 @@ export default function AdminDashboard() {
   const [editSev,     setEditSev]     = useState(null)
   const [adminNote,   setAdminNote]   = useState('')
   const [activeTab,   setActiveTab]   = useState('pending')
+  const [sortBy, setSortBy] = useState('date-desc')
   const [startingRepair, setStartingRepair] = useState(false)
 
   useEffect(() => {
@@ -41,6 +52,23 @@ export default function AdminDashboard() {
   const tabReports = {
     pending, verified, inRepair, needsReview, repaired, rejected
   }[activeTab] ?? pending
+
+  const sortedReports = useMemo(() => {
+    const opt = SORT_OPTIONS.find(o => o.key === sortBy) || SORT_OPTIONS[0]
+    const arr = [...tabReports]
+    arr.sort((a, b) => {
+      let cmp = 0
+      if (opt.by === 'date') {
+        cmp = new Date(a.createdAt) - new Date(b.createdAt)
+      } else if (opt.by === 'severity') {
+        cmp = (SEVERITY_ORDER[a.severityLevel] ?? 4) - (SEVERITY_ORDER[b.severityLevel] ?? 4)
+      } else if (opt.by === 'priority') {
+        cmp = (a.priorityScore ?? 0) - (b.priorityScore ?? 0)
+      }
+      return opt.dir === 'desc' ? -cmp : cmp
+    })
+    return arr
+  }, [tabReports, sortBy])
 
   async function updateStatus(id, status) {
     try {
@@ -149,6 +177,21 @@ export default function AdminDashboard() {
             ))}
           </div>
 
+          {/* Sort controls */}
+          <div className={styles.sortBar}>
+            <ArrowUpDown size={12} className={styles.sortIcon} />
+            <span className={styles.sortLabel}>Sort by:</span>
+            {SORT_OPTIONS.map(o => (
+              <button
+                key={o.key}
+                className={`${styles.sortBtn} ${sortBy === o.key ? styles.sortActive : ''}`}
+                onClick={() => setSortBy(o.key)}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+
           {/* Queue table */}
           <div className={styles.tableWrap}>
             <table className={styles.table}>
@@ -164,7 +207,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {tabReports.map(r => (
+                {sortedReports.map(r => (
                   <tr
                     key={r._id}
                     className={`${styles.row} ${selected?._id === r._id ? styles.rowSelected : ''}`}
@@ -183,7 +226,7 @@ export default function AdminDashboard() {
                     <td className={`${styles.timeCell} mono`}>{fmtTime(r.createdAt)}</td>
                   </tr>
                 ))}
-                {tabReports.length === 0 && (
+                {sortedReports.length === 0 && (
                   <tr><td colSpan={7} className={styles.emptyCell}>No reports in this category.</td></tr>
                 )}
               </tbody>
