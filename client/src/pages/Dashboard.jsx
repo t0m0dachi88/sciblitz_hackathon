@@ -31,12 +31,14 @@ function getCoords(r) {
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [recent, setRecent] = useState([])
+  const [allReports, setAllReports] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     Promise.all([fetchStats(), fetchReports()])
       .then(([statsData, reportsData]) => {
         setStats(statsData)
+        setAllReports(reportsData)
         setRecent(reportsData.slice(0, 8))
       })
       .catch(console.error)
@@ -69,7 +71,7 @@ export default function Dashboard() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             />
-            {recent.map(r => {
+            {allReports.map(r => {
               const level = sev(r)
               const coords = getCoords(r)
               return (

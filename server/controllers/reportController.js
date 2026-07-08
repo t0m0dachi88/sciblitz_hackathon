@@ -76,12 +76,18 @@ export const analyzeReport = async (req, res) => {
 
     const aiResult = await analyzeImageWithGemini(imagePath, mimetype, address);
 
-    const ikResponse = await imagekit.files.upload({
-      file: fs.createReadStream(imagePath),
-      fileName: filename,
-    });
-    fs.unlinkSync(imagePath);
-    const imageUrl = ikResponse.url;
+    let imageUrl;
+    try {
+      const ikResponse = await imagekit.files.upload({
+        file: fs.createReadStream(imagePath),
+        fileName: filename,
+      });
+      fs.unlinkSync(imagePath);
+      imageUrl = ikResponse.url;
+    } catch (ikErr) {
+      console.warn('ImageKit upload failed, using local file:', ikErr.message);
+      imageUrl = `/uploads/${filename}`;
+    }
 
     return res.status(200).json({ ...aiResult, imageUrl });
   } catch (error) {
@@ -138,7 +144,6 @@ export const getReports = async (req, res) => {
     // Public: only show verified/resolved. Admin with ?all=true sees everything.
     const filter = {};
     if (all === 'true') {
-      // requires auth — checked in route middleware
       if (status) filter.status = status;
     } else {
       filter.status = { $in: ['verified', 'resolved'] };

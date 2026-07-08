@@ -130,3 +130,59 @@ export async function confirmReport(data) {
   if (!res.ok) throw new Error('Failed to save report')
   return res.json()
 }
+
+const REPAIR_BASE = '/api/repairs'
+
+export async function createRepairCase(data) {
+  const res = await fetch(REPAIR_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error('Failed to create repair case')
+  return res.json()
+}
+
+export async function fetchRepairCases(status = '') {
+  const params = status ? `?status=${status}` : ''
+  const res = await fetch(`${REPAIR_BASE}${params}`, { headers: authHeaders() })
+  if (!res.ok) throw new Error('Failed to fetch repair cases')
+  return res.json()
+}
+
+export async function fetchRepairCaseById(repairId) {
+  const res = await fetch(`${REPAIR_BASE}/${repairId}`, { headers: authHeaders() })
+  if (!res.ok) throw new Error('Failed to fetch repair case')
+  return res.json()
+}
+
+export async function submitRepairEvidence(formData) {
+  const res = await fetch(`${REPAIR_BASE}/evidence`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: formData,
+  })
+  if (!res.ok) throw new Error('Failed to submit evidence')
+  return res.json()
+}
+
+export async function approveRepairManually(repairId) {
+  const res = await fetch(`${REPAIR_BASE}/${repairId}/approve`, {
+    method: 'POST',
+    headers: authHeaders(),
+  })
+  if (!res.ok) throw new Error('Failed to approve repair')
+  return res.json()
+}
+
+export async function fetchRepairEvidencePublic(repairId) {
+  const res = await fetch(`${REPAIR_BASE}/public/${repairId}`)
+  if (!res.ok) throw new Error('Failed to fetch repair evidence')
+  return res.json()
+}
+
+export async function fetchAreaTimeline(thana, months = 6) {
+  const res = await fetch(`${AREAS_BASE}/timeline/${encodeURIComponent(thana)}?months=${months}`)
+  if (!res.ok) throw new Error('Failed to fetch timeline')
+  return res.json()
+}

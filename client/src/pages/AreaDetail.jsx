@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, MapPin, AlertTriangle, FileText, Loader, Clock } from 'lucide-react'
-import { fetchAreaProfile, generateAreaReport } from '../api/reports'
+import { ArrowLeft, MapPin, AlertTriangle, FileText, Loader, Clock, BarChart } from 'lucide-react'
+import { BarChart as RechartsBar, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
+import { fetchAreaProfile, generateAreaReport, fetchAreaTimeline } from '../api/reports'
 import styles from './AreaDetail.module.css'
 
 const RISK_COLOR = { High: '#ef4444', Medium: '#eab308', Low: '#3b82f6' }
 
 const CATEGORY_LABELS = {
-  theft: 'Theft', burglary: 'Burglary', fire_incident: 'Fire Incident',
+  theft: 'Theft', burglary: 'Burglary', fire_incident: 'Fire',
   road_accident: 'Road Accident', drug_activity: 'Drug Activity',
-  public_safety_hazard: 'Public Safety Hazard', vandalism: 'Vandalism', other: 'Other',
+  public_safety_hazard: 'Safety Hazard', vandalism: 'Vandalism', other: 'Other',
+}
+
+const CHART_COLORS = {
+  theft: '#ef4444', burglary: '#f97316', fire_incident: '#eab308',
+  road_accident: '#3b82f6', drug_activity: '#8b5cf6',
+  public_safety_hazard: '#06b6d4', vandalism: '#ec4899', other: '#6b7280',
 }
 
 function fmtDate(iso) {
@@ -29,6 +36,8 @@ export default function AreaDetail() {
   const [loading, setLoading] = useState(true)
   const [aiReport, setAiReport] = useState(null)
   const [generating, setGenerating] = useState(false)
+  const [timeline, setTimeline] = useState([])
+  const [timelineMonths, setTimelineMonths] = useState(6)
 
   useEffect(() => {
     fetchAreaProfile(thana)
@@ -38,7 +47,11 @@ export default function AreaDetail() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [thana])
+
+    fetchAreaTimeline(thana, timelineMonths)
+      .then(setTimeline)
+      .catch(console.error)
+  }, [thana, timelineMonths])
 
   async function handleGenerate() {
     setGenerating(true)
@@ -123,6 +136,43 @@ export default function AreaDetail() {
               </div>
             </div>
           </div>
+
+          {/* Monthly Incident Timeline */}
+          {timeline.length > 0 && (
+            <div className={`card ${styles.sectionCard}`}>
+              <div className={styles.timelineHeader}>
+                <p className={styles.sectionTitle}><BarChart size={13} /> Monthly Incident Timeline</p>
+                <div className={styles.timelineFilters}>
+                  {[3, 6, 12].map(m => (
+                    <button
+                      key={m}
+                      className={`${styles.monthBtn} ${timelineMonths === m ? styles.monthBtnActive : ''}`}
+                      onClick={() => setTimelineMonths(m)}
+                    >
+                      {m}M
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className={styles.chartWrap}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <RechartsBar data={timeline} barGap={2}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                    <Tooltip
+                      contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 6, fontSize: 12 }}
+                      labelStyle={{ color: 'var(--text-primary)' }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    {Object.entries(CHART_COLORS).filter(([k]) => timeline.some(t => t[k] > 0)).map(([key, color]) => (
+                      <Bar key={key} dataKey={key} stackId="a" fill={color} name={CATEGORY_LABELS[key] || key} />
+                    ))}
+                  </RechartsBar>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
 
           {/* Category Breakdown */}
           <div className={`card ${styles.sectionCard}`}>

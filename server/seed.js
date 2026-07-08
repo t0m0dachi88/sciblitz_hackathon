@@ -114,9 +114,9 @@ function generateReports() {
 
       let status = 'pending';
       const roll = Math.random();
-      if (roll < 0.15) status = 'verified';
-      else if (roll < 0.3) status = 'resolved';
-      else if (roll < 0.4) status = 'rejected';
+      if (roll < 0.3) status = 'verified';
+      else if (roll < 0.5) status = 'resolved';
+      else if (roll < 0.6) status = 'rejected';
 
       reports.push({
         thana, category, severityLevel, damageType,

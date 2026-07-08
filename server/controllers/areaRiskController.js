@@ -132,3 +132,38 @@ export async function getIncidents(req, res) {
     return res.status(500).json({ error: 'Failed to fetch incidents' });
   }
 }
+
+export async function getTimeline(req, res) {
+  try {
+    const { thana } = req.params;
+    const { months } = req.query;
+    const monthCount = parseInt(months) || 6;
+
+    const since = new Date();
+    since.setMonth(since.getMonth() - monthCount);
+
+    const incidents = await Incident.find({ thana, reportedAt: { $gte: since } }).lean();
+
+    const monthMap = {};
+    for (let i = 0; i < monthCount; i++) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - (monthCount - 1 - i));
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      monthMap[key] = { month: key, total: 0, theft: 0, burglary: 0, fire_incident: 0, road_accident: 0, drug_activity: 0, public_safety_hazard: 0, vandalism: 0, other: 0 };
+    }
+
+    for (const inc of incidents) {
+      const d = new Date(inc.reportedAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (monthMap[key]) {
+        monthMap[key].total++;
+        if (monthMap[key][inc.type] !== undefined) monthMap[key][inc.type]++;
+      }
+    }
+
+    return res.status(200).json(Object.values(monthMap));
+  } catch (error) {
+    console.error('Error fetching timeline:', error);
+    return res.status(500).json({ error: 'Failed to fetch timeline' });
+  }
+}
