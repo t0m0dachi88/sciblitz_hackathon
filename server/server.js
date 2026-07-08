@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import reportRoutes from './routes/reportRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import areaRoutes from './routes/areaRoutes.js';
+import repairRoutes from './routes/repairRoutes.js';
 import { connectDB } from './config/db.js';
 
 dotenv.config();
@@ -27,6 +28,7 @@ app.use('/uploads', express.static('uploads'));
 app.use('/api/reports', reportRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/areas', areaRoutes);
+app.use('/api/repairs', repairRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'UrbanEye Backend is running' });

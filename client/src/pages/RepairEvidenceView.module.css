@@ -1,0 +1,60 @@
+.page { display: flex; flex-direction: column; gap: 20px; max-width: 1100px; margin: 0 auto; }
+.loading, .error { text-align: center; padding: 60px; color: var(--text-muted); font-size: 13px; }
+.error { color: #ef4444; }
+
+.header { display: flex; flex-direction: column; gap: 8px; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 20px;
+  color: #22c55e;
+  font-size: 11px;
+  font-weight: 600;
+  width: fit-content;
+}
+.title { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+.subtitle { font-size: 12px; color: var(--text-muted); max-width: 600px; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.leftCol, .rightCol { display: flex; flex-direction: column; gap: 16px; }
+
+.sectionCard { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.idGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.idItem { display: flex; flex-direction: column; gap: 3px; }
+.idLabel { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+
+.reportInfo { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-primary); }
+.damageType { font-size: 11px; color: var(--accent); font-weight: 500; }
+.desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+
+.imageWrap { border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+.image { width: 100%; max-height: 300px; object-fit: cover; display: block; }
+
+.confidenceBar { display: flex; flex-direction: column; gap: 6px; }
+.confLabel { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-primary); }
+.confValue { font-weight: 700; color: var(--accent); }
+.confTrack { height: 6px; background: var(--bg-hover); border-radius: 3px; overflow: hidden; }
+.confFill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+.summaryBox, .concernsBox, .notesBox {
+  padding: 12px;
+  background: var(--bg-hover);
+  border-radius: 6px;
+}
+.summaryLabel { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 6px; }
+.summaryText, .notesText { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+.concernList { list-style: disc; padding-left: 16px; }
+.concernList li { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }

@@ -1,6 +1,8 @@
 import { analyzeImageWithGemini } from '../services/geminiService.js';
 import { computePriorityScore } from '../services/priorityScore.js';
+import { generateReportId, generateInfrastructureId } from '../utils/idGenerator.js';
 import Report from '../models/Report.js';
+import Infrastructure from '../models/Infrastructure.js';
 import imagekit from '../config/imagekit.js';
 import fs from 'fs';
 
@@ -108,8 +110,15 @@ export const saveReport = async (req, res) => {
       return res.status(400).json({ error: 'Missing image URL' });
     }
 
+    const [reportId, infrastructureId] = await Promise.all([
+      generateReportId(),
+      generateInfrastructureId(),
+    ]);
+
     const thanaCoords = THANA_COORDS[thana] || [];
     const newReport = new Report({
+      reportId,
+      infrastructureId,
       thana,
       category,
       description,
@@ -123,6 +132,17 @@ export const saveReport = async (req, res) => {
     });
 
     await newReport.save();
+
+    await Infrastructure.create({
+      infrastructureId,
+      type: category,
+      location: thana,
+      thana,
+      coordinates: { lat: newReport.lat, lng: newReport.lng },
+      currentStatus: 'reported',
+      priorityScore: newReport.priorityScore,
+      priorityTier: newReport.priorityTier,
+    });
 
     const duplicateCount = await Report.countDocuments({ thana, category });
     const { score, tier } = computePriorityScore(newReport, duplicateCount + 1);

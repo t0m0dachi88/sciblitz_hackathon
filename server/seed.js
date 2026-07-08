@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import User from './models/User.js';
 import Report from './models/Report.js';
+import Infrastructure from './models/Infrastructure.js';
 import { computePriorityScore } from './services/priorityScore.js';
 
 dotenv.config();
@@ -156,16 +157,24 @@ async function seed() {
 
     // Clear existing reports and infrastructure
     await Report.deleteMany({});
-    await mongoose.connection.db.dropCollection('infrastructures').catch(() => {});
+    await Infrastructure.deleteMany({});
     console.log('Cleared existing reports and infrastructure');
 
     const REPORTS_DATA = generateReports();
 
-    // Insert reports
+    // Insert reports with IDs
     const now = Date.now();
+    let reportCounter = 0;
     const reports = REPORTS_DATA.map((r) => {
+      reportCounter++;
       const createdAt = new Date(now - r.hoursAgo * 3600000);
+      const yyyymmdd = createdAt.toISOString().slice(0, 10).replace(/-/g, '');
+      const reportId = `RPT-${yyyymmdd}-${String(reportCounter).padStart(5, '0')}`;
+      const infrastructureId = `INF-DHK-${String(reportCounter).padStart(6, '0')}`;
+
       const reportObj = {
+        reportId,
+        infrastructureId,
         imageUrl: DUMMY_IMAGE,
         thana: r.thana,
         category: r.category,
@@ -188,7 +197,21 @@ async function seed() {
     });
 
     await Report.insertMany(reports);
-    console.log(`Seeded ${reports.length} reports across ${THANAS.length} thanas`);
+
+    // Create infrastructure records
+    const infraRecords = reports.map(r => ({
+      infrastructureId: r.infrastructureId,
+      type: r.category,
+      location: r.thana,
+      thana: r.thana,
+      coordinates: { lat: r.lat, lng: r.lng },
+      currentStatus: r.status === 'rejected' ? 'false_report' : r.status === 'resolved' ? 'repaired' : r.status === 'verified' ? 'verified' : 'reported',
+      priorityScore: r.priorityScore,
+      priorityTier: r.priorityTier,
+    }));
+    await Infrastructure.insertMany(infraRecords);
+
+    console.log(`Seeded ${reports.length} reports and ${infraRecords.length} infrastructure records across ${THANAS.length} thanas`);
 
     await mongoose.disconnect();
     console.log('Done. Run the app and log in with:');

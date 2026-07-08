@@ -10,6 +10,7 @@ const PAGE_TITLES = {
   '/priority':  { title: 'Priority List',       sub: 'Ranked infrastructure issues by severity and impact score' },
   '/areas':     { title: 'Area Intelligence',   sub: 'Per-thana risk profiles and infrastructure condition leaderboard' },
   '/admin':     { title: 'Admin Dashboard',     sub: 'Authority verification and report management — restricted access' },
+  '/admin/repairs': { title: 'Repair Evidence', sub: 'Authorities manage completed repairs and upload evidence' },
 }
 
 export default function TopBar() {

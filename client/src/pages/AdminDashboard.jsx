@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle, XCircle, Edit2, RotateCcw, ShieldCheck, LogOut } from 'lucide-react'
+import { CheckCircle, XCircle, Edit2, RotateCcw, ShieldCheck, LogOut, Wrench } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { fetchReports, updateReport } from '../api/reports'
+import { fetchReports, updateReport, createRepairCase } from '../api/reports'
 import styles from './AdminDashboard.module.css'
 
 const SEVERITY_OPTIONS = ['Critical', 'High', 'Medium', 'Low']
@@ -22,6 +22,7 @@ export default function AdminDashboard() {
   const [editSev,     setEditSev]     = useState(null)
   const [adminNote,   setAdminNote]   = useState('')
   const [activeTab,   setActiveTab]   = useState('pending')
+  const [startingRepair, setStartingRepair] = useState(false)
 
   useEffect(() => {
     fetchReports({ all: true })
@@ -32,11 +33,13 @@ export default function AdminDashboard() {
 
   const pending  = reports.filter(r => r.status === 'pending')
   const verified = reports.filter(r => r.status === 'verified')
+  const inRepair = reports.filter(r => r.status === 'in_repair')
+  const needsReview = reports.filter(r => r.status === 'needs_manual_review' || r.status === 'false_report')
+  const repaired = reports.filter(r => r.status === 'repaired' || r.status === 'resolved')
   const rejected = reports.filter(r => r.status === 'rejected')
-  const resolved = reports.filter(r => r.status === 'resolved')
 
   const tabReports = {
-    pending, verified, rejected, resolved
+    pending, verified, inRepair, needsReview, repaired, rejected
   }[activeTab] ?? pending
 
   async function updateStatus(id, status) {
@@ -55,6 +58,27 @@ export default function AdminDashboard() {
     }
   }
 
+  async function startRepair(report) {
+    setStartingRepair(true)
+    try {
+      await createRepairCase({
+        reportMongoId: report._id,
+        reportId: report.reportId,
+        infrastructureId: report.infrastructureId,
+        assignedAuthority: 'Authority',
+      })
+      // Refresh reports
+      const updated = await fetchReports({ all: true })
+      setReports(updated)
+      setSelected(null)
+    } catch (err) {
+      console.error('Failed to start repair:', err)
+      alert('Failed to start repair: ' + err.message)
+    } finally {
+      setStartingRepair(false)
+    }
+  }
+
   function selectReport(r) {
     setSelected(r)
     setEditSev(r.severityLevel || r.severity)
@@ -65,10 +89,11 @@ export default function AdminDashboard() {
     total:    reports.length,
     pending:  pending.length,
     verified: verified.length,
+    inRepair: inRepair.length,
+    repaired: repaired.length,
     rejected: rejected.length,
-    resolved: resolved.length,
     rate: reports.length > 0
-      ? Math.round(((verified.length + resolved.length) / reports.length) * 100)
+      ? Math.round(((verified.length + repaired.length) / reports.length) * 100)
       : 0,
   }
 
@@ -89,9 +114,9 @@ export default function AdminDashboard() {
           { label: 'Total',    val: systemStats.total,    cls: '' },
           { label: 'Pending',  val: systemStats.pending,  cls: styles.statYellow },
           { label: 'Verified', val: systemStats.verified, cls: styles.statGreen },
+          { label: 'In Repair', val: systemStats.inRepair, cls: styles.statBlue },
+          { label: 'Repaired', val: systemStats.repaired, cls: styles.statGreen },
           { label: 'Rejected', val: systemStats.rejected, cls: styles.statRed },
-          { label: 'Resolved', val: systemStats.resolved, cls: styles.statBlue },
-          { label: 'Resolution Rate', val: `${systemStats.rate}%`, cls: '' },
         ].map(({ label, val, cls }) => (
           <div key={label} className={`card ${styles.statBox}`}>
             <span className={styles.statLabel}>{label}</span>
@@ -109,8 +134,10 @@ export default function AdminDashboard() {
             {[
               { key: 'pending',  label: `Pending (${pending.length})` },
               { key: 'verified', label: `Verified (${verified.length})` },
+              { key: 'inRepair', label: `In Repair (${inRepair.length})` },
+              { key: 'needsReview', label: `Needs Review (${needsReview.length})` },
+              { key: 'repaired', label: `Repaired (${repaired.length})` },
               { key: 'rejected', label: `Rejected (${rejected.length})` },
-              { key: 'resolved', label: `Resolved (${resolved.length})` },
             ].map(t => (
               <button
                 key={t.key}
@@ -129,6 +156,7 @@ export default function AdminDashboard() {
                 <tr>
                   <th>Priority</th>
                   <th>Report ID</th>
+                  <th>Infra ID</th>
                   <th>Thana</th>
                   <th>Category</th>
                   <th>Severity</th>
@@ -147,7 +175,8 @@ export default function AdminDashboard() {
                         {r.priorityScore ?? '-'}
                       </span>
                     </td>
-                    <td className="mono">{r._id.slice(-6).toUpperCase()}</td>
+                    <td className="mono">{r.reportId || r._id.slice(-6).toUpperCase()}</td>
+                    <td className="mono">{r.infrastructureId || '-'}</td>
                     <td>{r.thana}</td>
                     <td>{r.category}</td>
                     <td><span className={`badge badge-${(r.severityLevel || 'low').toLowerCase()}`}>{r.severityLevel}</span></td>
@@ -170,9 +199,15 @@ export default function AdminDashboard() {
 
               <div className={styles.reportMeta}>
                 <div className={styles.metaRow}>
-                  <span className={styles.metaKey}>ID</span>
-                  <span className="mono" style={{ fontSize: 12 }}>{selected._id.slice(-6).toUpperCase()}</span>
+                  <span className={styles.metaKey}>Report ID</span>
+                  <span className="mono" style={{ fontSize: 12 }}>{selected.reportId || selected._id.slice(-6).toUpperCase()}</span>
                 </div>
+                {selected.infrastructureId && (
+                  <div className={styles.metaRow}>
+                    <span className={styles.metaKey}>Infra ID</span>
+                    <span className="mono" style={{ fontSize: 12 }}>{selected.infrastructureId}</span>
+                  </div>
+                )}
                 <div className={styles.metaRow}>
                   <span className={styles.metaKey}>Category</span>
                   <span className={styles.metaVal}>{selected.category}</span>
@@ -226,7 +261,7 @@ export default function AdminDashboard() {
               />
 
               <div className={styles.actionBtns}>
-                {['pending', 'rejected'].includes(selected.status) && (
+                {['pending', 'rejected', 'false_report'].includes(selected.status) && (
                   <>
                     <button
                       className={styles.btnApprove}
@@ -247,9 +282,18 @@ export default function AdminDashboard() {
                 {selected.status === 'verified' && (
                   <button
                     className={styles.btnResolve}
-                    onClick={() => updateStatus(selected._id, 'resolved')}
+                    onClick={() => startRepair(selected)}
+                    disabled={startingRepair}
                   >
-                    <RotateCcw size={13} /> Mark Resolved
+                    <Wrench size={13} /> {startingRepair ? 'Starting...' : 'Start Repair'}
+                  </button>
+                )}
+                {selected.status === 'in_repair' && (
+                  <button
+                    className={styles.btnResolve}
+                    onClick={() => navigate(`/admin/repair/${selected._id}`)}
+                  >
+                    <Wrench size={13} /> Manage Repair
                   </button>
                 )}
               </div>
@@ -269,7 +313,8 @@ export default function AdminDashboard() {
               <li>Cross-check report image with description before verifying.</li>
               <li>Override AI severity only when field assessment differs significantly.</li>
               <li>Add notes for all rejected reports to guide the citizen.</li>
-              <li>Mark "Resolved" only after physical repair has been confirmed.</li>
+              <li>After verification, click "Start Repair" to create a repair case.</li>
+              <li>Upload evidence at <strong>/admin/repairs</strong> for AI validation.</li>
             </ul>
           </div>
         </div>

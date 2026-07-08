@@ -6,6 +6,7 @@ import {
   ListOrdered,
   BarChart2,
   ShieldCheck,
+  Wrench,
   Activity,
   LogOut,
 } from 'lucide-react'
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
 ]
 
 const ADMIN_ITEM = { to: '/admin', icon: ShieldCheck, label: 'Admin Panel' }
+const REPAIR_ITEM = { to: '/admin/repairs', icon: Wrench, label: 'Repair Evidence' }
 
 export default function Sidebar() {
   const { isAuth, isAdmin, user, logout } = useAuth()
@@ -72,6 +74,15 @@ export default function Sidebar() {
         >
           <ADMIN_ITEM.icon size={14} strokeWidth={1.75} />
           <span>{ADMIN_ITEM.label}</span>
+        </NavLink>
+        <NavLink
+          to={REPAIR_ITEM.to}
+          className={({ isActive }) =>
+            `${styles.navItem} ${isActive ? styles.activeAdmin : ''}`
+          }
+        >
+          <REPAIR_ITEM.icon size={14} strokeWidth={1.75} />
+          <span>{REPAIR_ITEM.label}</span>
         </NavLink>
       </nav>
 

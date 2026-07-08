@@ -11,6 +11,9 @@ import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import ReportDetail from './pages/ReportDetail'
 import AreaDetail from './pages/AreaDetail'
+import RepairEvidenceManagement from './pages/RepairEvidenceManagement'
+import RepairEvidenceDetail from './pages/RepairEvidenceDetail'
+import RepairEvidenceView from './pages/RepairEvidenceView'
 
 function ProtectedRoute({ children }) {
   const { isAuth, loading } = useAuth()
@@ -34,8 +37,11 @@ export default function App() {
             <Route path="priority"   element={<PriorityList />} />
             <Route path="areas"      element={<AreaIntelligence />} />
             <Route path="admin"      element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="admin/repairs" element={<ProtectedRoute><RepairEvidenceManagement /></ProtectedRoute>} />
+            <Route path="admin/repair/:repairId" element={<ProtectedRoute><RepairEvidenceDetail /></ProtectedRoute>} />
             <Route path="report/:id" element={<ReportDetail />} />
             <Route path="areas/:thana" element={<AreaDetail />} />
+            <Route path="repair/:repairId" element={<RepairEvidenceView />} />
           </Route>
         </Routes>
       </BrowserRouter>
