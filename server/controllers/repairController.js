@@ -28,12 +28,14 @@ export const getRepairCases = async (req, res) => {
 
 export const getRepairCaseById = async (req, res) => {
   try {
-    const repairCase = await RepairCase.findOne({
-      $or: [
-        { repairId: req.params.repairId },
-        { _id: req.params.repairId },
-      ],
-    });
+    const param = req.params.repairId;
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(param);
+
+    const query = isObjectId
+      ? { $or: [{ repairId: param }, { _id: param }] }
+      : { repairId: param };
+
+    const repairCase = await RepairCase.findOne(query);
 
     if (!repairCase) {
       return res.status(404).json({ error: 'Repair case not found' });

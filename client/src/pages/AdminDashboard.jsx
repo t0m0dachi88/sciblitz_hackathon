@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle, XCircle, Edit2, RotateCcw, ShieldCheck, LogOut, Wrench } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { fetchReports, updateReport, createRepairCase } from '../api/reports'
+import { fetchReports, updateReport, createRepairCase, fetchRepairCases } from '../api/reports'
 import styles from './AdminDashboard.module.css'
 
 const SEVERITY_OPTIONS = ['Critical', 'High', 'Medium', 'Low']
@@ -291,7 +291,19 @@ export default function AdminDashboard() {
                 {selected.status === 'in_repair' && (
                   <button
                     className={styles.btnResolve}
-                    onClick={() => navigate(`/admin/repair/${selected._id}`)}
+                    onClick={async () => {
+                      try {
+                        const cases = await fetchRepairCases()
+                        const myCase = cases.find(c => c.reportId === selected.reportId || c.reportMongoId === selected._id)
+                        if (myCase) {
+                          navigate(`/admin/repair/${myCase.repairId}`)
+                        } else {
+                          alert('No repair case found for this report')
+                        }
+                      } catch (err) {
+                        console.error(err)
+                      }
+                    }}
                   >
                     <Wrench size={13} /> Manage Repair
                   </button>
