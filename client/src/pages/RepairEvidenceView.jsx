@@ -22,7 +22,9 @@ export default function RepairEvidenceView() {
   if (error) return <div className={styles.error}>{error}</div>
   if (!data) return <div className={styles.error}>No data found.</div>
 
-  const { repairCase, evidence, report } = data
+  const evidence = data.evidence
+  const report = data.report
+  const repairCase = data
 
   return (
     <div className={styles.page}>

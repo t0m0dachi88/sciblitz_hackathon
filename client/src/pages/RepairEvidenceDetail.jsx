@@ -87,7 +87,9 @@ export default function RepairEvidenceDetail() {
     return <div className={styles.loading}>Repair case not found.</div>
   }
 
-  const { repairCase, report, evidence } = caseData
+  const report = caseData.report
+  const evidence = caseData.evidence
+  const repairCase = caseData
 
   return (
     <div className={styles.page}>
