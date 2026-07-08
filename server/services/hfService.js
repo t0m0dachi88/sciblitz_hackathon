@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_KEY = process.env.GROQ_API_KEY;
+function getGroqKey() { return process.env.GROQ_API_KEY; }
 
 const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 const TEXT_MODEL = 'llama-3.3-70b-versatile';
@@ -11,7 +11,7 @@ async function groqRequest(body) {
   const response = await fetch(GROQ_API, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${GROQ_KEY}`,
+      'Authorization': `Bearer ${getGroqKey()}`,
       'Content-Type': 'application/json',
     },
     body: data,
