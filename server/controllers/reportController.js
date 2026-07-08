@@ -103,35 +103,36 @@ export const analyzeReport = async (req, res) => {
 };
 
 export const saveReport = async (req, res) => {
-  try {
-    const { thana, category, description, imageUrl, damage_type, severity_level, explanation, lat, lng } = req.body;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const { thana, category, description, imageUrl, damage_type, severity_level, explanation, lat, lng } = req.body;
 
-    if (!imageUrl) {
-      return res.status(400).json({ error: 'Missing image URL' });
-    }
+      if (!imageUrl) {
+        return res.status(400).json({ error: 'Missing image URL' });
+      }
 
-    const [reportId, infrastructureId] = await Promise.all([
-      generateReportId(),
-      generateInfrastructureId(),
-    ]);
+      const [reportId, infrastructureId] = await Promise.all([
+        generateReportId(),
+        generateInfrastructureId(),
+      ]);
 
-    const thanaCoords = THANA_COORDS[thana] || [];
-    const newReport = new Report({
-      reportId,
-      infrastructureId,
-      thana,
-      category,
-      description,
-      imageUrl,
-      damageType: damage_type,
-      severityLevel: severity_level,
-      aiExplanation: explanation,
-      lat: lat ?? thanaCoords[0] ?? null,
-      lng: lng ?? thanaCoords[1] ?? null,
-      userId: req.user?.id || null,
-    });
+      const thanaCoords = THANA_COORDS[thana] || [];
+      const newReport = new Report({
+        reportId,
+        infrastructureId,
+        thana,
+        category,
+        description,
+        imageUrl,
+        damageType: damage_type,
+        severityLevel: severity_level,
+        aiExplanation: explanation,
+        lat: lat ?? thanaCoords[0] ?? null,
+        lng: lng ?? thanaCoords[1] ?? null,
+        userId: req.user?.id || null,
+      });
 
-    await newReport.save();
+      await newReport.save();
 
     await Infrastructure.create({
       infrastructureId,
@@ -151,10 +152,16 @@ export const saveReport = async (req, res) => {
     newReport.priorityTier = tier;
 
     return res.status(201).json({ message: 'Report saved successfully', report: newReport });
-  } catch (error) {
-    console.error('Error saving report:', error);
-    return res.status(500).json({ error: 'Failed to save report', details: error.message });
+    } catch (error) {
+      if (error.code === 11000 && attempt < 2) {
+        console.warn(`Duplicate key on attempt ${attempt + 1}, retrying...`);
+        continue;
+      }
+      console.error('Error saving report:', error);
+      return res.status(500).json({ error: 'Failed to save report', details: error.message });
+    }
   }
+  return res.status(500).json({ error: 'Failed to save report after retries' });
 };
 
 export const getReports = async (req, res) => {
