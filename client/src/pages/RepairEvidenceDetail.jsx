@@ -45,17 +45,11 @@ export default function RepairEvidenceDetail() {
 
     setSubmitting(true)
     try {
-      // Upload files via analyze endpoint or direct URL
-      // For now, we'll send URLs (files should be uploaded separately)
-      const afterImageUrl = afterPreview || ''
-      const completionCertUrl = completionCert?.name || ''
-      const inspectionReportUrl = inspectionReport?.name || ''
-
       const response = await submitRepairEvidence({
         repairId,
-        afterRepairImageUrl: afterImageUrl,
-        completionCertificateUrl: completionCertUrl,
-        siteInspectionReportUrl: inspectionReportUrl,
+        afterRepairImage: afterImage,
+        completionCertificateUrl: completionCert?.name || '',
+        siteInspectionReportUrl: inspectionReport?.name || '',
         repairNotes,
       })
 

@@ -157,10 +157,17 @@ export async function fetchRepairCaseById(repairId) {
 }
 
 export async function submitRepairEvidence(data) {
+  const formData = new FormData()
+  formData.append('repairId', data.repairId)
+  if (data.afterRepairImage) formData.append('afterRepairImage', data.afterRepairImage)
+  if (data.completionCertificateUrl) formData.append('completionCertificateUrl', data.completionCertificateUrl)
+  if (data.siteInspectionReportUrl) formData.append('siteInspectionReportUrl', data.siteInspectionReportUrl)
+  if (data.repairNotes) formData.append('repairNotes', data.repairNotes)
+
   const res = await fetch(`${REPAIR_BASE}/evidence`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify(data),
+    headers: authHeaders(),
+    body: formData,
   })
   if (!res.ok) throw new Error('Failed to submit evidence')
   return res.json()

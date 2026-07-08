@@ -128,7 +128,6 @@ export const submitRepairEvidence = async (req, res) => {
       repairId,
       completionCertificateUrl,
       siteInspectionReportUrl,
-      afterRepairImageUrl,
       repairNotes,
     } = req.body;
 
@@ -143,12 +142,31 @@ export const submitRepairEvidence = async (req, res) => {
 
     const report = await Report.findOne({ reportId: repairCase.reportId });
 
-    const originalPath = report?.imageUrl?.startsWith('/uploads/')
-      ? `uploads/${report.imageUrl.split('/uploads/')[1]}`
-      : null;
-    const afterPath = afterRepairImageUrl?.startsWith('/uploads/')
-      ? `uploads/${afterRepairImageUrl.split('/uploads/')[1]}`
-      : null;
+    // Original image path from report
+    let originalPath = null;
+    if (report?.imageUrl?.startsWith('/uploads/')) {
+      const filename = report.imageUrl.split('/uploads/')[1];
+      const fullPath = `uploads/${filename}`;
+      if (fs.existsSync(fullPath)) originalPath = fullPath;
+    }
+
+    // After-repair image from uploaded file
+    let afterPath = null;
+    let afterRepairImageUrl = '';
+    if (req.file) {
+      afterPath = req.file.path;
+      // Try ImageKit upload, fallback to local URL
+      try {
+        const ikResponse = await imagekit.files.upload({
+          file: fs.createReadStream(req.file.path),
+          fileName: req.file.filename,
+        });
+        afterRepairImageUrl = ikResponse.url;
+      } catch (ikErr) {
+        console.warn('ImageKit upload failed, using local file:', ikErr.message);
+        afterRepairImageUrl = `/uploads/${req.file.filename}`;
+      }
+    }
 
     let aiResult = {
       verificationStatus: 'needs_manual_review',
